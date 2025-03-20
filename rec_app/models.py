@@ -1,14 +1,14 @@
 from django.db import models
 
 class StaffUsers(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30,unique=False)
 
     def __str__(self):
         return self.name
     
 
 class Patient(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,unique=False)
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
 
@@ -33,7 +33,6 @@ class MedicalRecord(models.Model):
 class Vitals(MedicalRecord):
     recorded_by = models.CharField(max_length=255)
     recorded_datetime = models.DateTimeField()
-    # temperature = models.FloatField()
     blood_pressure = models.CharField(max_length=50)
     bmi = models.FloatField()
     grbs = models.CharField(max_length=50)
@@ -57,7 +56,6 @@ class LabResult(MedicalRecord):
 class Imaging(MedicalRecord):
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="imaging")
     scan_type = models.CharField(max_length=100)
-    # scan_result = models.FileField(upload_to='imaging_reports/')
 
 class Prescription(MedicalRecord):
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="prescriptions")

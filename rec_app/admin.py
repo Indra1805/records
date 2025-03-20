@@ -12,10 +12,3 @@ class PatientAdmin(admin.ModelAdmin):
     list_display = ['id','name']
 
 
-# @admin.register(Vitals)
-# class VitalsAdmin(admin.ModelAdmin):
-#     list_display = ['recorded_by','temperature','blood_pressure','heart_rate']
-
-# @admin.register(LabResult)
-# class LabResultsAdmin(admin.ModelAdmin):
-#     list_display = ['doctor','white_blood_cells','hemoglobin','platelets']
