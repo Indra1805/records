@@ -24,6 +24,7 @@ class MedicalRecord(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     record_type = models.CharField(max_length=50, choices=RECORD_TYPES)
     summary = models.TextField()
+    report = models.FileField(upload_to='reports/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -32,10 +33,12 @@ class MedicalRecord(models.Model):
 class Vitals(MedicalRecord):
     recorded_by = models.CharField(max_length=255)
     recorded_datetime = models.DateTimeField()
-    temperature = models.FloatField()
+    # temperature = models.FloatField()
     blood_pressure = models.CharField(max_length=50)
-    heart_rate = models.IntegerField()
-    oxygen_level = models.IntegerField()
+    bmi = models.FloatField()
+    grbs = models.CharField(max_length=50)
+    cvs = models.CharField(max_length=50)
+    cns = models.CharField(max_length=50)
     respiratory_rate = models.IntegerField()
     weight = models.FloatField()
     height = models.FloatField()
@@ -54,7 +57,7 @@ class LabResult(MedicalRecord):
 class Imaging(MedicalRecord):
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="imaging")
     scan_type = models.CharField(max_length=100)
-    scan_result = models.FileField(upload_to='imaging_reports/')
+    # scan_result = models.FileField(upload_to='imaging_reports/')
 
 class Prescription(MedicalRecord):
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="prescriptions")

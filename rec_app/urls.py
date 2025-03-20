@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import MedicalRecordViewSet, get_record_fields
+from .views import MedicalRecordAPIView
 
 urlpatterns = [
-    path("medical_records/create/", MedicalRecordViewSet.as_view({"post": "create"})),
-    path("medical_records/list/", MedicalRecordViewSet.as_view({"get": "list"})),
-    path("medical_records/fields/", get_record_fields),
+    path('records/<str:record_type>/', MedicalRecordAPIView.as_view()),
+    path('records/<str:record_type>/<int:patient_id>/', MedicalRecordAPIView.as_view()),
+    path('records/<str:record_type>/update/<int:record_id>/', MedicalRecordAPIView.as_view()),
 ]
