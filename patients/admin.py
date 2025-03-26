@@ -10,7 +10,7 @@ class RecordsAdmin(admin.ModelAdmin):
     search_fields = ['status']
 
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ['patient_id', 'patient_name', 'doctor_name', 'age', 'gender', 'blood_group', 'email', 'phno', 'appointment_type', 'created_at']
+    list_display = ['patient_id', 'patient_name', 'doctor_name', 'age', 'gender', 'blood_group', 'email', 'phno', 'appointment_type', 'ward_no','diagnosis','created_at']
     search_fields = ['patient_name', 'phno', 'doctor_name', 'email']
     list_filter = ['gender', 'appointment_type', 'blood_group']
 

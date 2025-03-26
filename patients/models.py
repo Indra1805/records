@@ -10,7 +10,6 @@ class Invoice(models.Model):
     amount = models.IntegerField()
 
 class Patient(models.Model):
-
     class AppointmentStatus(models.TextChoices):
         INPATIENT = 'inpatient', _('inpatient')
         OUTPATIENT = 'outpatient', _('outpatient')
@@ -47,6 +46,8 @@ class Patient(models.Model):
     email = models.EmailField(unique=True)
     blood_group = models.CharField(max_length=3,choices=BloodGroupChoices.choices,null=True,blank=True)
     billing = models.ForeignKey(Invoice,on_delete=models.CASCADE , null=True, blank=True)
+    ward_no = models.CharField(max_length=10,null=True,blank=True)
+    diagnosis = models.TextField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def can_update(self):

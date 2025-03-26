@@ -109,6 +109,17 @@ class PatientValidator(serializers.Serializer):
     )
 
     notes = serializers.CharField(required=False, allow_blank=True)
+    ward_no = serializers.CharField(max_length=10,required=False,allow_blank=True,error_messages=
+        {
+            "max_length": "Ward number cannot exceed 5 characters."
+        }
+    )
+
+    diagnosis = serializers.CharField(max_length=255,required=False,allow_blank=True,error_messages=
+        {
+            "max_length": "Diagnosis cannot exceed 255 characters."
+        }
+    )
 
 
 class NotificationValidator(serializers.Serializer):

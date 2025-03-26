@@ -28,9 +28,6 @@ class PatientAPIView(APIView):
                 raise SerializerError(validator.errors)
             req_params = validator.validated_data
 
-           
-        
-
             patient = models.Patient(
                 patient_name = req_params['patient_name'],
                 doctor_name = req_params['doctor_name'],  
@@ -43,7 +40,10 @@ class PatientAPIView(APIView):
                 phno = req_params['phno'],
                 email = req_params['email'],
                 blood_group = req_params['blood_group'],
+                ward_no=req_params.get('ward_no', ''),         
+                diagnosis=req_params.get('diagnosis', '')      
             )
+
             patient.clean()
             patient.save()
 

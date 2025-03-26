@@ -16,7 +16,7 @@ class PatientUpdateSerializer(serializers.ModelSerializer):
         model = Patient
         fields = [
             'patient_name', 'doctor_name', 'date', 'time', 'age',
-            'appointment_type', 'notes', 'gender', 'phno', 'billing'
+            'appointment_type', 'notes', 'gender', 'phno', 'billing','ward_no','diagnosis'
         ]
         extra_kwargs = {'phno': {'required': False}}
 
