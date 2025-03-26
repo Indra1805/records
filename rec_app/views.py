@@ -11,6 +11,7 @@ from django.db import transaction
 from rec_app.serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.db.models import Q
 from .serializers import get_serializer_class
 from core import messages
 
@@ -26,13 +27,41 @@ def get_serializer_class(record_type):
     return serializer_classes.get(record_type)
 
 
+# class MedicalRecordRetrieveAPIView(APIView):
+#     def get(self, request):
+#         context = {"success": 1, "message": messages.DATA_RETRIEVED, "data": {}}
+#         try:
+#             record_type = request.query_params.get("record_type")
+#             serializer_class = get_serializer_class(record_type)
+
+#             if not serializer_class:
+#                 context["success"] = 0
+#                 context["message"] = "Invalid record type"
+#                 return Response(context)
+
+#             model_class = serializer_class.Meta.model
+#             queryset = model_class.objects.all()
+#             serializer = serializer_class(queryset, many=True)
+#             context["data"] = serializer.data
+#             return Response(context)
+
+#         except Exception as e:
+#             context["success"] = 0
+#             context["message"] = str(e)
+#             return Response(context)
 
 
-class MedicalRecordRetrieveAPIView(APIView):
+
+
+class MedicalRecordRetrieveAPIView(APIView): 
     def get(self, request):
-        context = {"success": 1, "message": messages.DATA_RETRIEVED, "data": {}}
+        context = {"success": 1, "message": "Data Retrieved", "data": {}}
         try:
             record_type = request.query_params.get("record_type")
+            patient_id = request.query_params.get("patient_id")
+            patient_name = request.query_params.get("patient_name")
+            record_id = request.query_params.get("record_id")
+
             serializer_class = get_serializer_class(record_type)
 
             if not serializer_class:
@@ -42,6 +71,18 @@ class MedicalRecordRetrieveAPIView(APIView):
 
             model_class = serializer_class.Meta.model
             queryset = model_class.objects.all()
+
+            # Filtering Logic
+            filters = Q()
+            if patient_id:
+                filters &= Q(patient__id=patient_id)
+            if patient_name:
+                filters &= Q(patient__patient_name__icontains=patient_name)
+            if record_id:
+                filters &= Q(id=record_id)
+
+            queryset = queryset.filter(filters)
+
             serializer = serializer_class(queryset, many=True)
             context["data"] = serializer.data
             return Response(context)
