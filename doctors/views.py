@@ -86,28 +86,35 @@ class DoctorAvailabilityAPIView(APIView):
         return Response(context, status=status.HTTP_200_OK)
 
     def get_available_slots(self, doctor):
-        
-        """Helper function to generate available slots for a doctor"""
-        start_time = datetime.combine(now().date(), doctor.d_start_time)
-        end_time = datetime.combine(now().date(), doctor.d_end_time)
+        today = now().date()
+        start_time = datetime.combine(today, doctor.d_start_time)
+        end_time = datetime.combine(today, doctor.d_end_time)
+ 
         slots = []
-        post_break_slots = 0
-
+ 
+        # Handle overnight shift (PM to AM)
+        overnight_shift = False
+        if doctor.d_start_time > doctor.d_end_time:
+            end_time += timedelta(days=1)  # Move end_time to the next day
+            overnight_shift = True  # Flag for identifying PM to AM shift
+ 
         while start_time < end_time:
             time_str = start_time.strftime('%I:%M %p')
-
-            if time_str == "12:00 PM":
+ 
+            # Add break from 12 PM to 1 PM for AM → PM shifts
+            if not overnight_shift and time_str == "12:00 PM":
                 slots.append({"time": time_str, "status": "Break"})
-                start_time += timedelta(hours=2)  # Skip 2 hours for break
-            elif start_time >= datetime.combine(now().date(), datetime.strptime("02:00 PM", "%I:%M %p").time()):
-                if post_break_slots < 2:
-                    slots.append({"time": time_str, "status": "Available"})
-                    post_break_slots += 1
+                start_time += timedelta(hours=1)  # Skip break time
+ 
+            # Add break from 12 AM to 1 AM for PM → AM shifts
+            elif overnight_shift and time_str == "12:00 AM":
+                slots.append({"time": time_str, "status": "Break"})
+                start_time += timedelta(hours=1)  # Skip break time
+ 
             else:
                 slots.append({"time": time_str, "status": "Available"})
-
-            start_time += timedelta(hours=1)
-
+                start_time += timedelta(hours=1)  # Increment slot by 1 hour
+ 
         return slots
 
     
