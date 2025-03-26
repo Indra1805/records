@@ -85,36 +85,67 @@ class DoctorAvailabilityAPIView(APIView):
 
         return Response(context, status=status.HTTP_200_OK)
 
+    # def get_available_slots(self, doctor):
+    #     today = now().date()
+    #     start_time = datetime.combine(today, doctor.d_start_time)
+    #     end_time = datetime.combine(today, doctor.d_end_time)
+ 
+    #     slots = []
+ 
+    #     # Handle overnight shift (PM to AM)
+    #     overnight_shift = False
+    #     if doctor.d_start_time > doctor.d_end_time:
+    #         end_time += timedelta(days=1)  # Move end_time to the next day
+    #         overnight_shift = True  # Flag for identifying PM to AM shift
+ 
+    #     while start_time < end_time:
+    #         time_str = start_time.strftime('%I:%M %p')
+ 
+    #         # Add break from 12 PM to 1 PM for AM → PM shifts
+    #         if not overnight_shift and time_str == "12:00 PM":
+    #             slots.append({"time": time_str, "status": "Break"})
+    #             start_time += timedelta(hours=1)  # Skip break time
+ 
+    #         # Add break from 12 AM to 1 AM for PM → AM shifts
+    #         elif overnight_shift and time_str == "12:00 AM":
+    #             slots.append({"time": time_str, "status": "Break"})
+    #             start_time += timedelta(hours=1)  # Skip break time
+ 
+    #         else:
+    #             slots.append({"time": time_str, "status": "Available"})
+    #             start_time += timedelta(hours=1)  # Increment slot by 1 hour
+ 
+    #     return slots
+
     def get_available_slots(self, doctor):
         today = now().date()
         start_time = datetime.combine(today, doctor.d_start_time)
         end_time = datetime.combine(today, doctor.d_end_time)
- 
+    
         slots = []
- 
+        hours_worked = 0
+    
         # Handle overnight shift (PM to AM)
         overnight_shift = False
         if doctor.d_start_time > doctor.d_end_time:
-            end_time += timedelta(days=1)  # Move end_time to the next day
-            overnight_shift = True  # Flag for identifying PM to AM shift
- 
+            end_time += timedelta(days=1)
+            overnight_shift = True
+    
         while start_time < end_time:
             time_str = start_time.strftime('%I:%M %p')
- 
-            # Add break from 12 PM to 1 PM for AM → PM shifts
-            if not overnight_shift and time_str == "12:00 PM":
+
+            # Break for every 4 hours
+            if hours_worked > 0 and hours_worked % 4 == 0:
                 slots.append({"time": time_str, "status": "Break"})
-                start_time += timedelta(hours=1)  # Skip break time
- 
-            # Add break from 12 AM to 1 AM for PM → AM shifts
-            elif overnight_shift and time_str == "12:00 AM":
-                slots.append({"time": time_str, "status": "Break"})
-                start_time += timedelta(hours=1)  # Skip break time
- 
-            else:
-                slots.append({"time": time_str, "status": "Available"})
-                start_time += timedelta(hours=1)  # Increment slot by 1 hour
- 
+                start_time += timedelta(hours=1)  # Break time
+                hours_worked = 0  # Reset hours_worked after break
+                continue
+
+            # Add normal time slot
+            slots.append({"time": time_str, "status": "Available"})
+            start_time += timedelta(hours=1)
+            hours_worked += 1
+    
         return slots
 
     
