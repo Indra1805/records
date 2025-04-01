@@ -26,6 +26,7 @@ class MedicalRecord(models.Model):
     summary = models.TextField()
     report = models.FileField(upload_to='reports/')
     created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True  # Abstract Model
@@ -76,61 +77,89 @@ class ServiceProcedure(MedicalRecord):
 
 # Models for adding note
 
+# Nursing Notes
 
-class NursingNote(models.Model):
+class NursingNotes(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Nursing Note {self.id}"
+
+# Progress Notes
 
 class ProgressNote(models.Model):
     STATUS_CHOICES = [
-        ("Critical", "Critical"),
-        ("Serious", "Serious"),
-        ("Moderate", "Moderate"),
-        ("Mild", "Mild"),
-        ("Recovered", "Recovered"),
-        ("Stable", "Stable"),
-        ("Deteriorating", "Deteriorating"),
-        ("Improving", "Improving"),
+        ('critical', 'Critical'),
+        ('serious', 'Serious'),
+        ('moderate', 'Moderate'),
+        ('mild', 'Mild'),
+        ('recovered', 'Recovered'),
+        ('stable', 'Stable'),
+        ('deteriorating', 'Deteriorating'),
+        ('improving', 'Improving'),
     ]
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Stable")
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='progress_notes')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.status
+        return f'{self.patient.patient_name} - {self.status}'
+    
 
-# Treatment Chart Table
+
+# Treatment Chart
+
 class TreatmentChart(models.Model):
-    medicine_name = models.CharField(max_length=255) 
-    hrs_drops_mins = models.CharField(max_length=20)  # Hrs/Drops/Min
-    dose = models.CharField(max_length=100)  # Dose Quantity
-    time = models.TimeField()  # Time to give medicine
-    medicine_details = models.TextField()  # Medicine Description
-    created_at = models.DateTimeField(auto_now_add=True)  # Auto timestamp
-
-    def __str__(self):
-        return f"{self.medicine_details} at {self.time}"
-
-
-# Pain Assessment Table
-class PainAssessment(models.Model):
-    PAIN_INTENSITY_CHOICES = [(i, i) for i in range(11)]  # 0-10 scale
-
-    pain_intensity = models.IntegerField(choices=PAIN_INTENSITY_CHOICES)
-    location_of_service = models.CharField(max_length=255)
-    quality_of_service = models.CharField(max_length=50, choices=[('Constant', 'Constant Feedback'), ('Intermittent', 'Intermittent Feedback')])
-    character_of_service = models.JSONField(default=list)  # List of selected checkboxes
-    factors_affecting_rating = models.TextField()
-    factors_improving_experience = models.JSONField(default=list)  # List of selected checkboxes
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)  # One treatment chart per patient
+    medicine_name = models.CharField(max_length=255)
+    hrs_drops_mins = models.CharField(max_length=50)  # Stores Hrs/Drops/Mins as a string
+    dose = models.CharField(max_length=50)
+    time = models.TimeField()
+    medicine_details = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+# Pain Assessment
+
+class PainAssessment(models.Model):
+    PAIN_INTENSITY_CHOICES = [(i, str(i)) for i in range(11)]  # 0 to 10
+
+    QUALITY_OF_SERVICE_CHOICES = [
+        ('constant', 'Constant Feedback'),
+        ('intermittent', 'Intermittent Feedback'),
+    ]
+
+    CHARACTER_OF_SERVICE_CHOICES = [
+        ('lacerating', 'Lacerating Feedback'),
+        ('burning', 'Burning Feedback'),
+        ('radiating', 'Radiating Feedback'),
+    ]
+
+    FACTORS_IMPROVING_EXPERIENCE_CHOICES = [
+        ('reset', 'Reset Feedback'),
+        ('medication', 'Medication Feedback'),
+    ]
+
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='pain_assessment')
+    pain_intensity = models.IntegerField(choices=PAIN_INTENSITY_CHOICES, default=0)
+    location_of_service = models.CharField(max_length=255, blank=True, null=True)
+    quality_of_service = models.CharField(max_length=20, choices=QUALITY_OF_SERVICE_CHOICES, blank=True, null=True)
+    character_of_service = models.JSONField(blank=True, null=True)  # Store multiple choices
+    factors_affecting_rating = models.TextField(blank=True, null=True)
+    factors_improving_experience = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'Pain Assessment - {self.id}'
+        return f'{self.patient.patient_name} - Pain Assessment'
+    
 
-# Initial Assessment Table
+# Initial Assessment
 class InitialAssessment(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     rating_title = models.CharField(max_length=255, blank=True, null=True)
     relationship_to_feedback = models.CharField(max_length=255, blank=True, null=True)
     feedback_date = models.DateField(blank=True, null=True)
@@ -143,44 +172,44 @@ class InitialAssessment(models.Model):
     stroke_feedback = models.TextField(blank=True, null=True)
     other_feedback = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return self.rating_title
 
-# Care Plan Feedback Table
+# Careplan Feedback
+
 class CarePlanFeedback(models.Model):
-    feedback_on_services = models.TextField(blank=True, null=True)
-    provisional_feedback = models.TextField(blank=True, null=True)
-    feedback_plan = models.TextField(blank=True, null=True)
-    expected_outcome_of_feedback = models.TextField(blank=True, null=True)
-    preventive_feedback_aspects = models.TextField(blank=True, null=True)
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE) 
+    feedback_on_services = models.TextField()  
+    provisional_feedback = models.TextField()  
+    feedback_plan = models.TextField()  
+    expected_outcome = models.TextField()  
+    preventive_feedback_aspects = models.TextField()  
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
 
-    def __str__(self):
-        return self.feedback_on_services[:50] if self.feedback_on_services else "No Feedback"
 
-# Risk Assessment Tables
+# Risk Assessment
+
 class RiskFactor1(models.Model):
-    surgery_feedback = models.BooleanField(default=False)
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
+    surgery = models.BooleanField(default=False)
     postpartum_feedback = models.BooleanField(default=False)
     condition_feedback = models.BooleanField(default=False)
     contraceptive_feedback = models.BooleanField(default=False)
     age_feedback = models.BooleanField(default=False)
-    obesity_feedback = models.BooleanField(default=False)
+    obesity = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"Surgery: {self.surgery_feedback}, Obesity: {self.obesity_feedback}"
 
 class RiskFactor2(models.Model):
-    surgery_feedback = models.BooleanField(default=False)
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
+    surgery = models.BooleanField(default=False)
     postpartum_feedback = models.BooleanField(default=False)
     condition_feedback = models.BooleanField(default=False)
     contraceptive_feedback = models.BooleanField(default=False)
     age_feedback = models.BooleanField(default=False)
-    obesity_feedback = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Risk Factor 2 - Surgery: {self.surgery_feedback}, Obesity: {self.obesity_feedback}"
+    obesity = models.BooleanField(default=False)
+    
 
 class RiskFactor3(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     age_feedback = models.BooleanField(default=False)
     surgery_feedback = models.BooleanField(default=False)
     surgical_feedback = models.BooleanField(default=False)
@@ -188,17 +217,15 @@ class RiskFactor3(models.Model):
     health_condition_feedback = models.BooleanField(default=False)
     feedback_on_condition = models.BooleanField(default=False)
     bedridden_feedback = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Risk Factor 3 - Age: {self.age_feedback}, Surgery: {self.surgery_feedback}"
+    
 
 class RiskFactor4(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     history_of_feedback = models.BooleanField(default=False)
     heart_failure_feedback = models.BooleanField(default=False)
     resistance_feedback = models.BooleanField(default=False)
     deficiency_feedback = models.BooleanField(default=False)
     health_condition_feedback = models.BooleanField(default=False)
-    feedback_on_condition = models.BooleanField(default=False)
     condition_feedback = models.BooleanField(default=False)
     thrombocytopenia_feedback = models.BooleanField(default=False)
     heart_feedback = models.BooleanField(default=False)
@@ -207,18 +234,14 @@ class RiskFactor4(models.Model):
     antibody_feedback = models.BooleanField(default=False)
     disorder_feedback = models.BooleanField(default=False)
     syndrome_feedback = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Risk Factor 4 - Heart Failure: {self.heart_failure_feedback}, Disorder: {self.disorder_feedback}"
+    
 
 class RiskFactor5(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     elective_surgery_feedback = models.BooleanField(default=False)
     fracture_feedback = models.BooleanField(default=False)
     trauma_feedback = models.BooleanField(default=False)
     surgery_feedback = models.BooleanField(default=False)
     stroke_feedback = models.BooleanField(default=False)
     injury_feedback = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Risk Factor 5 - Surgery: {self.surgery_feedback}, Stroke: {self.stroke_feedback}"
 

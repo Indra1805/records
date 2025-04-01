@@ -1,53 +1,47 @@
 from django.urls import path
-from .views import (MedicalRecordRetrieveAPIView,
-                    MedicalRecordCreateAPIView,
-                    MedicalRecordUpdateAPIView,    
-                    NursingNoteRetrieveAPIView,
-                    NursingNoteCreateAPIView,
-                    ProgressNoteRetrieveAPIView,
-                    ProgressNoteCreateAPIView,
-                    ProgressNoteUpdateAPIView,
-                    TreatmentChartRetrieveAPIView,
-                    TreatmentChartCreateAPIView,
-                    PainAssessmentRetrieveAPIView,
-                    PainAssessmentCreateAPIView,
-                    InitialAssessmentRetrieveAPIView,
-                    InitialAssessmentCreateAPIView,
-                    CarePlanFeedbackRetrieveAPIView,
-                    CarePlanFeedbackCreateAPIView,
-                    RiskFactorsRetrieveAPIView,
-                    RiskFactorCreateAPIView)
+from .views import *
 
 urlpatterns = [
     # requests for records
-    # path('medical-records/', MedicalRecordAPIView.as_view(), name='medical-record-list-create'),
-    # path('medical-records/<int:pk>/', MedicalRecordAPIView.as_view(), name='medical-record-detail'),
+    
     path('records/', MedicalRecordRetrieveAPIView.as_view(), name='record-list'),
     path('records/create/', MedicalRecordCreateAPIView.as_view(), name='record-create'),
     path('records/update/<int:pk>/', MedicalRecordUpdateAPIView.as_view(), name='record-update'),
 
     # requests for notes
-    # path('nursing-notes/', NursingNoteView.as_view(), name='nursing-notes'),
-    path('nursing-notes/', NursingNoteRetrieveAPIView.as_view(), name='nursing-note-list'),
-    path('nursing-notes/create/', NursingNoteCreateAPIView.as_view(), name='nursing-note-create'),
-    # path("progress-notes/", ProgressNoteView.as_view()),  
-    # path("progress-notes/<int:pk>/", ProgressNoteView.as_view()), 
-    path('progress-notes/', ProgressNoteRetrieveAPIView.as_view(), name='progress-note-list'),
-    path('progress-notes/<int:pk>/', ProgressNoteRetrieveAPIView.as_view(), name='progress-note-detail'),
-    path('progress-notes/create/', ProgressNoteCreateAPIView.as_view(), name='progress-note-create'),
-    path('progress-notes/update/<int:pk>/', ProgressNoteUpdateAPIView.as_view(), name='progress-note-update'),
-    path('treatment-charts/', TreatmentChartRetrieveAPIView.as_view(), name='treatment-chart-list'),
-    path('treatment-charts/create/', TreatmentChartCreateAPIView.as_view(), name='treatment-chart-create'),
-    # path('pain-assessments/', PainAssessmentView.as_view(), name='pain-assessment-list'),
-    path('pain-assessments/', PainAssessmentRetrieveAPIView.as_view(), name='pain-assessment-list'),
-    path('pain-assessments/create/', PainAssessmentCreateAPIView.as_view(), name='pain-assessment-create'),
-    # path('initial-assessment/', InitialAssessmentView.as_view(), name='initial-assessment-list'),
-    path('initial-assessments/', InitialAssessmentRetrieveAPIView.as_view(), name='initial-assessment-list'),
-    path('initial-assessments/create/', InitialAssessmentCreateAPIView.as_view(), name='initial-assessment-create'),
-    # path('care-plan-feedback/', CarePlanFeedbackView.as_view(), name='care-plan-feedback-list'),
-    path('careplan-feedbacks/', CarePlanFeedbackRetrieveAPIView.as_view(), name='careplan-feedback-list'),
-    path('careplan-feedbacks/create/', CarePlanFeedbackCreateAPIView.as_view(), name='careplan-feedback-create'),
-    # path('risk-factors/', RiskFactorsCombinedView.as_view(), name='risk-factors-combined'),
-    path('risk-factors/', RiskFactorsRetrieveAPIView.as_view(), name='risk-factors-list'),
-    path('risk-factors/create/', RiskFactorCreateAPIView.as_view(), name='risk-factor-create'),
+    
+    # Nursing Notes
+    path('create-nursing-notes/', NursingNotesAPIView.as_view(), name='nursing-notes'),    
+    path('get-nursing-notes/<str:patient_id>', NursingNotesListAPIView.as_view(), name='list'),    
+    path('update-nursing-notes/<str:patient_id>', NursingNotesUpdateAPIView.as_view(), name='update'),  
+
+    # Progress Notes
+    path('create-progress-note/', CreateProgressNoteAPIView.as_view(), name='create-progress-note'),
+    path('get-progress-note/<str:patient_id>/', GetProgressNoteAPIView.as_view(), name='get-progress-note'),
+    path('update-progress-note/<str:patient_id>/', ProgressNoteDetailView.as_view(), name='progress_note_detail'),
+
+    # Treatment Chart
+    path('create-treatment-chart/', TreatmentChartAPIView.as_view(), name='treatment-notes'),
+    path('get-treatment-chart/<str:patient_id>/', TreatmentChartListAPIView.as_view(), name='treatment-list'),    
+    path('update-treatment-chart/<str:patient_id>/', TreatmentChartUpdateAPIView.as_view(), name='treatment-update'),
+
+    # Pain Assessment
+    path('create-pain-assessment/', CreatePainAssessmentAPIView.as_view(), name='create-pain-assessment'),
+    path('get-pain-assessment/<str:patient_id>/', GetPainAssessmentAPIView.as_view(), name='get-pain-assessment'),
+    path('update-pain-assessment/<str:patient_id>/', UpdatePainAssessmentAPIView.as_view(), name='update-pain-assessment'),
+
+    # Initial Assessment
+    path('create-initial-assessment/', CreateInitialAssessmentAPIView.as_view(), name='create-initial-assessment'),
+    path('get-initial-assessment/<str:patient_id>/', GetInitialAssessmentAPIView.as_view(), name='get-initial-assessment'),
+    path('update-initial-assessment/<str:patient_id>/', UpdateInitialAssessmentAPIView.as_view(), name='update-initial-assessment'),
+
+    # CarePlan Feedback
+    path('create-careplan/', CarePlanFeedbackAPIView.as_view(), name='careplan-feedback'),
+    path('get-careplan/<str:patient_id>/', CarePlanFeedbackListAPIView.as_view(), name='careplan-feedback-list'),
+    path('update-careplan/<str:patient_id>/', CarePlanFeedbackUpdateAPIView.as_view(), name='careplan-feedback-update'),
+
+    # Risk Assessment
+    path('create-multiple-risk-factors/', CreateMultipleRiskFactorsAPIView.as_view(), name='create-multiple-risk-factors'),
+    path('get-multiple-risk-factors/<str:patient_id>/', RetrieveMultipleRiskFactorsAPIView.as_view(), name='get-multiple-risk-factors'),
+    path('update-multiple-risk-factors/<str:patient_id>/', UpdateMultipleRiskFactorsAPIView.as_view(), name='get-multiple-risk-factors'),
 ]

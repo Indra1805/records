@@ -1,4 +1,8 @@
 from rest_framework import serializers
+from .models import ProgressNote
+from patients.models import Patient
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 class VitalsValidator(serializers.Serializer):
     blood_pressure = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=7, error_messages={
@@ -113,120 +117,331 @@ class ServiceProcedureValidator(serializers.Serializer):
     })
 
 
-from rest_framework import serializers
 
-# Nursing Note Validator
-class NursingNoteValidator(serializers.Serializer):
-    description = serializers.CharField(required=True, allow_blank=False, error_messages={
-        "required": "Description is a required field.",
-        "blank": "Description cannot be empty."
-    })
+# Validators for Notes
 
-# Progress Note Validator
+# Nursing Notes
+class NursingNotesValidator(serializers.Serializer):
+    patient = serializers.CharField(max_length=50)
+    description = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Description is a required field.",
+            "blank": "Description cannot be empty.",
+        }
+    )
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+class NursingNotesUpdateValidator(serializers.Serializer):
+    description = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Description is a required field.",
+            "blank": "Description cannot be empty.",
+        }
+    )
+
+
+# Progress Notes
+
 class ProgressNoteValidator(serializers.Serializer):
-    status = serializers.ChoiceField(choices=[
-        "Critical", "Serious", "Moderate", "Mild", "Recovered", "Stable", "Deteriorating", "Improving"
-    ], error_messages={
-        "invalid_choice": "Invalid status choice."
-    })
+    patient_id = serializers.CharField(max_length=20)
+    status = serializers.ChoiceField(choices=ProgressNote.STATUS_CHOICES)
 
-# Treatment Chart Validator
+    def validate_patient_id(self, value):
+        if not Patient.objects.filter(patient_id=value).exists():
+            raise serializers.ValidationError("Invalid patient ID")
+        return value
+
+
+# Treatment Chart
+
 class TreatmentChartValidator(serializers.Serializer):
-    medicine_name = serializers.CharField(required=True, max_length=255, error_messages={
-        "required": "Medicine name is a required field.",
-        "max_length": "Medicine name cannot exceed 255 characters."
-    })
-    hrs_drops_mins = serializers.CharField(required=True, max_length=20, error_messages={
-        "required": "Hrs/Drops/Min is a required field.",
-        "max_length": "Hrs/Drops/Min cannot exceed 20 characters."
-    })
-    dose = serializers.CharField(required=True, max_length=100, error_messages={
-        "required": "Dose is a required field.",
-        "max_length": "Dose cannot exceed 100 characters."
-    })
-    time = serializers.TimeField(required=True, error_messages={
-        "required": "Time is a required field."
-    })
-    medicine_details = serializers.CharField(required=True, error_messages={
-        "required": "Medicine details are required."
-    })
+    patient = serializers.CharField(max_length=50)
+   
+    medicine_name = serializers.CharField(
+        required=True,
+        max_length=255,
+        error_messages={
+            "required": "Medicine name is a required field.",
+            "blank": "Medicine name cannot be empty.",
+            "max_length": "Medicine name cannot exceed 255 characters."
+        }
+    )
+ 
+    hrs_drops_mins = serializers.CharField(
+        required=True,
+        max_length=50,
+        error_messages={
+            "required": "Hrs/Drops/Mins is a required field.",
+            "blank": "Hrs/Drops/Mins cannot be empty.",
+            "max_length": "This field cannot exceed 50 characters."
+        }
+    )
+ 
+    dose = serializers.CharField(
+        required=True,
+        max_length=50,
+        error_messages={
+            "required": "Dose is a required field.",
+            "blank": "Dose cannot be empty.",
+            "max_length": "Dose cannot exceed 50 characters."
+        }
+    )
+ 
+    time = serializers.TimeField(
+        required=True,
+        error_messages={
+            "required": "Time is a required field.",
+            "invalid": "Invalid time format. Use HH:MM:SS."
+        }
+    )
+ 
+    medicine_details = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Medicine details are required.",
+            "blank": "Medicine details cannot be empty."
+        }
+    )
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+ 
+class TreatmentChartUpdateValidator(serializers.Serializer):
+    medicine_name = serializers.CharField(
+        required=True,
+        max_length=255,
+        error_messages={
+            "required": "Medicine name is a required field.",
+            "blank": "Medicine name cannot be empty.",
+            "max_length": "Medicine name cannot exceed 255 characters."
+        }
+    )
+ 
+    hrs_drops_mins = serializers.CharField(
+        required=True,
+        max_length=50,
+        error_messages={
+            "required": "Hrs/Drops/Mins is a required field.",
+            "blank": "Hrs/Drops/Mins cannot be empty.",
+            "max_length": "This field cannot exceed 50 characters."
+        }
+    )
+ 
+    dose = serializers.CharField(
+        required=True,
+        max_length=50,
+        error_messages={
+            "required": "Dose is a required field.",
+            "blank": "Dose cannot be empty.",
+            "max_length": "Dose cannot exceed 50 characters."
+        }
+    )
+ 
+    time = serializers.TimeField(
+        required=True,
+        error_messages={
+            "required": "Time is a required field.",
+            "invalid": "Invalid time format. Use HH:MM:SS."
+        }
+    )
+ 
+    medicine_details = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Medicine details are required.",
+            "blank": "Medicine details cannot be empty."
+        }
+    )
 
-# Pain Assessment Validator
-class PainAssessmentValidator(serializers.Serializer):
-    pain_intensity = serializers.IntegerField(min_value=0, max_value=10, error_messages={
-        "min_value": "Pain intensity cannot be below 0.",
-        "max_value": "Pain intensity cannot exceed 10."
-    })
-    location_of_service = serializers.CharField(max_length=255, error_messages={
-        "max_length": "Location cannot exceed 255 characters."
-    })
-    quality_of_service = serializers.ChoiceField(choices=["Constant", "Intermittent"], error_messages={
-        "invalid_choice": "Invalid choice for quality of service."
-    })
-    character_of_service = serializers.JSONField(error_messages={
-        "invalid": "Invalid character of service data."
-    })
-    factors_affecting_rating = serializers.CharField(error_messages={
-        "invalid": "Invalid factors affecting rating."
-    })
-    factors_improving_experience = serializers.JSONField(error_messages={
-        "invalid": "Invalid factors improving experience data."
-    })
 
-# Initial Assessment Validator
-class InitialAssessmentValidator(serializers.Serializer):
-    rating_title = serializers.CharField(required=False, allow_blank=True, max_length=255)
-    relationship_to_feedback = serializers.CharField(required=False, allow_blank=True, max_length=255)
-    feedback_date = serializers.DateField(required=False)
-    duration_of_experience = serializers.CharField(required=False, allow_blank=True)
-    present_illness = serializers.CharField(required=False, allow_blank=True)
-    past_illness = serializers.CharField(required=False, allow_blank=True)
-    experience_feedback = serializers.CharField(required=False, allow_blank=True)
-    health_feedback = serializers.CharField(required=False, allow_blank=True)
-    hart_feedback = serializers.CharField(required=False, allow_blank=True)
-    stroke_feedback = serializers.CharField(required=False, allow_blank=True)
-    other_feedback = serializers.CharField(required=False, allow_blank=True)
+# Pain Assessment
 
-# Care Plan Feedback Validator
+def validate_character_of_service(value):
+    valid_choices = ['lacerating', 'burning', 'radiating']
+    for item in value:
+        if item not in valid_choices:
+            raise serializers.ValidationError(f"Invalid choice: {item}. Valid choices: {valid_choices}")
+    return value
+
+def validate_factors_improving_experience(value):
+    valid_choices = ['reset', 'medication']
+    for item in value:
+        if item not in valid_choices:
+            raise serializers.ValidationError(f"Invalid choice: {item}. Valid choices: {valid_choices}")
+    return value
+
+
+# Initial Assessment
+def validate_patient_id(self, value):
+    if not Patient.objects.filter(patient_id=value).exists():
+        raise serializers.ValidationError("Invalid patient ID")
+    return value
+
+
+
+# CarePlan Feedback
+
 class CarePlanFeedbackValidator(serializers.Serializer):
-    feedback_on_services = serializers.CharField(required=False, allow_blank=True)
-    provisional_feedback = serializers.CharField(required=False, allow_blank=True)
-    feedback_plan = serializers.CharField(required=False, allow_blank=True)
-    expected_outcome_of_feedback = serializers.CharField(required=False, allow_blank=True)
-    preventive_feedback_aspects = serializers.CharField(required=False, allow_blank=True)
+    patient = serializers.CharField(max_length=50)
 
-# Risk Factor Validators
-class RiskFactorValidator(serializers.Serializer):
-    surgery_feedback = serializers.BooleanField(default=False)
-    postpartum_feedback = serializers.BooleanField(default=False)
-    condition_feedback = serializers.BooleanField(default=False)
-    contraceptive_feedback = serializers.BooleanField(default=False)
-    age_feedback = serializers.BooleanField(default=False)
-    obesity_feedback = serializers.BooleanField(default=False)
+    feedback_on_services = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Feedback on Services is a required field.",
+            "blank": "Feedback on Services cannot be empty.",
+        }
+    )
 
-class RiskFactor3Validator(RiskFactorValidator):
-    surgical_feedback = serializers.BooleanField(default=False)
-    access_feedback = serializers.BooleanField(default=False)
-    health_condition_feedback = serializers.BooleanField(default=False)
-    feedback_on_condition = serializers.BooleanField(default=False)
-    bedridden_feedback = serializers.BooleanField(default=False)
+    provisional_feedback = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Provisional Feedback is a required field.",
+            "blank": "Provisional Feedback cannot be empty.",
+        }
+    )
 
-class RiskFactor4Validator(RiskFactorValidator):
-    history_of_feedback = serializers.BooleanField(default=False)
-    heart_failure_feedback = serializers.BooleanField(default=False)
-    resistance_feedback = serializers.BooleanField(default=False)
-    deficiency_feedback = serializers.BooleanField(default=False)
-    thrombocytopenia_feedback = serializers.BooleanField(default=False)
-    heart_feedback = serializers.BooleanField(default=False)
-    infection_feedback = serializers.BooleanField(default=False)
-    mutation_feedback = serializers.BooleanField(default=False)
-    antibody_feedback = serializers.BooleanField(default=False)
-    disorder_feedback = serializers.BooleanField(default=False)
-    syndrome_feedback = serializers.BooleanField(default=False)
+    feedback_plan = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Feedback Plan is a required field.",
+            "blank": "Feedback Plan cannot be empty.",
+        }
+    )
 
-class RiskFactor5Validator(RiskFactorValidator):
-    elective_surgery_feedback = serializers.BooleanField(default=False)
-    fracture_feedback = serializers.BooleanField(default=False)
-    trauma_feedback = serializers.BooleanField(default=False)
-    stroke_feedback = serializers.BooleanField(default=False)
-    injury_feedback = serializers.BooleanField(default=False)
+    expected_outcome = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Expected Outcome of Feedback is a required field.",
+            "blank": "Expected Outcome cannot be empty.",
+        }
+    )
+
+    preventive_feedback_aspects = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Preventive Feedback Aspects is a required field.",
+            "blank": "Preventive Feedback Aspects cannot be empty.",
+        }
+    )
+
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+class CarePlanFeedbackUpdateValidator(serializers.Serializer):
+    feedback_on_services = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Feedback on Services is a required field.",
+            "blank": "Feedback on Services cannot be empty.",
+        }
+    )
+
+    provisional_feedback = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Provisional Feedback is a required field.",
+            "blank": "Provisional Feedback cannot be empty.",
+        }
+    )
+
+    feedback_plan = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Feedback Plan is a required field.",
+            "blank": "Feedback Plan cannot be empty.",
+        }
+    )
+
+    expected_outcome = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Expected Outcome of Feedback is a required field.",
+            "blank": "Expected Outcome cannot be empty.",
+        }
+    )
+
+    preventive_feedback_aspects = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Preventive Feedback Aspects is a required field.",
+            "blank": "Preventive Feedback Aspects cannot be empty.",
+        }
+    )
+
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+
+# Risk Assessment
+
+class RiskFactor1Validator:
+    def validate_risk_data(self, data):
+        if sum([data.get(field, False) for field in [
+            'surgery',
+            'postpartum_feedback',
+            'contraceptive_feedback',
+            'age_feedback',
+            'condition_feedback',
+            'obesity'
+        ]]) > 6:
+            raise ValidationError("Invalid data. More than 6 selections are not allowed.")
+
+class RiskFactor2Validator:
+    def validate_risk_data(self, data):
+        if sum([data.get(field, False) for field in [
+            'surgery',
+            'postpartum_feedback',
+            'contraceptive_feedback',
+            'age_feedback',
+            'condition_feedback',
+            'obesity'
+        ]]) > 6:
+            raise ValidationError("Invalid data. More than 6 selections are not allowed.")
+
+
+class RiskFactor3Validator:
+    def validate_risk_data(self, data):
+        if sum([data.get(field, False) for field in [
+            'age_feedback',
+            'surgery_feedback',
+            'surgical_feedback',
+            'access_feedback',
+            'health_condition_feedback',
+            'feedback_on_condition',
+            'bedridden_feedback'
+        ]]) > 7:
+            raise ValidationError("Invalid data. More than 7 selections are not allowed.")
+
+class RiskFactor4Validator:
+    def validate_risk_data(self, data):
+        if sum([data.get(field, False) for field in [
+            'history_of_feedback',
+            'heart_failure_feedback',
+            'resistance_feedback',
+            'deficiency_feedback',
+            'health_condition_feedback',
+            'condition_feedback',
+            'thrombocytopenia_feedback',
+            'heart_feedback',
+            'infection_feedback',
+            'mutation_feedback',
+            'antibody_feedback',
+            'disorder_feedback',
+            'syndrome_feedback'
+        ]]) > 13:
+            raise ValidationError("Invalid data. More than 13 selections are not allowed.")
+
+
+class RiskFactor5Validator:
+    def validate_risk_data(self, data):
+        if sum([data.get(field, False) for field in [
+            'elective_surgery_feedback',
+            'fracture_feedback',
+            'trauma_feedback',
+            'surgery_feedback',
+            'stroke_feedback',
+            'injury_feedback',
+        ]]) > 6:
+            raise ValidationError("Invalid data. More than 6 selections are not allowed.")
