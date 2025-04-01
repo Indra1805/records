@@ -27,118 +27,7 @@ def get_serializer_class(record_type):
     return serializer_classes.get(record_type)
 
 
-
-# class MedicalRecordRetrieveAPIView(APIView): 
-#     def get(self, request):
-#         context = {"success": 1, "message": "Data Retrieved", "data": {}}
-#         try:
-#             record_type = request.query_params.get("record_type")
-#             patient_id = request.query_params.get("patient_id")
-#             patient_name = request.query_params.get("patient_name")
-#             record_id = request.query_params.get("record_id")
-
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             model_class = serializer_class.Meta.model
-#             queryset = model_class.objects.all()
-
-#             # Filtering Logic
-#             filters = Q()
-#             if patient_id:
-#                 filters &= Q(patient__id=patient_id)
-#             if patient_name:
-#                 filters &= Q(patient__patient_name__icontains=patient_name)
-#             if record_id:
-#                 filters &= Q(id=record_id)
-
-#             queryset = queryset.filter(filters)
-
-#             serializer = serializer_class(queryset, many=True)
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
-
-
-# class MedicalRecordCreateAPIView(APIView):
-#     def post(self, request):
-#         context = {"success": 1, "message": messages.DATA_SAVED, "data": {}}
-#         try:
-#             record_type = request.data.get("record_type")
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             serializer = serializer_class(data=request.data)
-#             if not serializer.is_valid():
-#                 context["success"] = 0
-#                 context["message"] = serializer.errors
-#                 return Response(context)
-
-#             serializer.save()
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
 class MedicalRecordRetrieveAPIView(APIView):
-    # def get(self, request):
-    #     context = {"success": 1, "message": "Records fetched successfully", "data": []}
-
-    #     try:
-    #         patient_id = request.GET.get("patient_id")
-    #         phone_number = request.GET.get("phone_number")
-    #         patient_name = request.GET.get("patient_name")
-    #         record_id = request.GET.get("record_id")
-    #         record_type = request.GET.get("record_type")  # Optional filter for record type
-
-    #         # Building query dynamically
-    #         filters = Q()
-    #         if patient_id:
-    #             filters |= Q(patient__patient_id=patient_id)
-    #         if phone_number:
-    #             filters |= Q(patient__phone_number=phone_number)
-    #         if patient_name:
-    #             filters |= Q(patient__name__icontains=patient_name)
-    #         if record_id:
-    #             filters |= Q(id=record_id)
-    #         if record_type:
-    #             filters &= Q(record_type=record_type)
-
-    #         records = MedicalRecord.objects.filter(filters)
-
-    #         if not records.exists():
-    #             context["success"] = 0
-    #             context["message"] = "No records found"
-    #             return Response(context)
-
-    #         serializer = MedicalRecordSerializer(records, many=True)  # Ensure MedicalRecordSerializer is properly imported
-    #         context["data"] = serializer.data
-    #         return Response(context)
-
-    #     except Exception as e:
-    #         context["success"] = 0
-    #         context["message"] = str(e)
-    #         return Response(context)
-
-
     def get(self, request):
         patient_id = request.query_params.get("patient_id")
         phone_number = request.query_params.get("phone_number")
@@ -175,43 +64,6 @@ class MedicalRecordRetrieveAPIView(APIView):
             return Response({"success": 1, "data": serializer.data})
         except Exception as e:
             return Response({"success": 0, "message": str(e)})
-
-    # def get(self, request):
-    #     context = {"success": 1, "message": "Data retrieved", "data": {}}
-
-    #     try:
-    #         patient_id = request.query_params.get("patient_id")
-    #         record_type = request.query_params.get("record_type")
-
-    #         if not patient_id:
-    #             context["success"] = 0
-    #             context["message"] = "Patient ID is required"
-    #             return Response(context)
-
-    #         try:
-    #             patient = Patient.objects.get(patient_id=patient_id)
-    #         except Patient.DoesNotExist:
-    #             context["success"] = 0
-    #             context["message"] = "Patient not found"
-    #             return Response(context)
-
-    #         serializer_class = get_serializer_class(record_type)
-
-    #         if not serializer_class:
-    #             context["success"] = 0
-    #             context["message"] = "Invalid record type"
-    #             return Response(context)
-
-    #         records = serializer_class.Meta.model.objects.filter(patient=patient)
-    #         serializer = serializer_class(records, many=True)
-    #         context["data"] = serializer.data
-
-    #         return Response(context)
-
-    #     except Exception as e:
-    #         context["success"] = 0
-    #         context["message"] = str(e)
-    #         return Response(context)
 
 
 
@@ -323,44 +175,6 @@ class MedicalRecordUpdateAPIView(APIView):
             context["success"] = 0
             context["message"] = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# class MedicalRecordUpdateAPIView(APIView):
-#     def put(self, request, pk):
-#         context = {"success": 1, "message": messages.DATA_UPDATED, "data": {}}
-#         try:
-#             record_type = request.data.get("record_type")
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             model_class = serializer_class.Meta.model
-#             instance = model_class.objects.get(pk=pk)
-
-#             serializer = serializer_class(instance, data=request.data, partial=True)
-#             if not serializer.is_valid():
-#                 context["success"] = 0
-#                 context["message"] = serializer.errors
-#                 return Response(context)
-
-#             serializer.save()
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except model_class.DoesNotExist:
-#             context["success"] = 0
-#             context["message"] = "Record not found"
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
-
 
 
 # Add Notes
