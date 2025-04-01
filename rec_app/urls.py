@@ -3,10 +3,10 @@ from .views import *
 
 urlpatterns = [
     # requests for records
-    
+
     path('records/', MedicalRecordRetrieveAPIView.as_view(), name='record-list'),
     path('records/create/', MedicalRecordCreateAPIView.as_view(), name='record-create'),
-    path('records/update/<int:pk>/', MedicalRecordUpdateAPIView.as_view(), name='record-update'),
+    path('records/update/<str:patient_id>/', MedicalRecordUpdateAPIView.as_view(), name='record-update'),
 
     # requests for notes
     

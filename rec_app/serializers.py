@@ -7,30 +7,41 @@ from .validators import validate_character_of_service,validate_factors_improving
 
 # serializers for Adding Records
 
+# class VitalsSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Vitals
+#         fields = '__all__'
+
 class VitalsSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
+
     class Meta:
         model = Vitals
-        fields = '__all__'
+        fields = ['patient', 'blood_pressure', 'bmi', 'grbs','cns','cvs', 'respiratory_rate', 'weight', 'height']
 
 class LabResultSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = LabResult
-        fields = '__all__'
+        fields = ['patient','title']
 
 class ImagingSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = Imaging
-        fields = '__all__'
+        fields = ['patient','sacn_type']
 
 class PrescriptionSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = Prescription
-        fields = '__all__'
+        fields = ['patient','medication_name','dosage','duration']
 
 class ServiceProcedureSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = ServiceProcedure
-        fields = '__all__'
+        fields = ['patient','procedure_name','procedure_notes']
 
 def get_serializer_class(record_type):
     serializer_mapping = {

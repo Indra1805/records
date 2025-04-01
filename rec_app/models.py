@@ -22,9 +22,9 @@ class MedicalRecord(models.Model):
     ]
     
     record_type = models.CharField(max_length=50, choices=RECORD_TYPES)
-    category = models.CharField(max_length=255)
-    summary = models.TextField()
-    report = models.FileField(upload_to='reports/')
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,7 +34,6 @@ class MedicalRecord(models.Model):
 class Vitals(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='vitals_records')
     recorded_by = models.CharField(max_length=255)
-    recorded_datetime = models.DateTimeField()
     blood_pressure = models.CharField(max_length=50)
     bmi = models.FloatField()
     grbs = models.CharField(max_length=50)
@@ -47,11 +46,7 @@ class Vitals(MedicalRecord):
 class LabResult(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='lab_results')
     doctor = models.ForeignKey(StaffUsers,on_delete=models.CASCADE)
-    hemoglobin = models.FloatField()
-    white_blood_cells = models.FloatField()
-    platelets = models.FloatField()
-    test_name = models.CharField(max_length=255)
-    result_value = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
 
 
 
@@ -65,7 +60,6 @@ class Prescription(MedicalRecord):
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="prescriptions")
     medication_name = models.CharField(max_length=100)
     dosage = models.CharField(max_length=50)
-    frequency = models.CharField(max_length=50)
     duration = models.CharField(max_length=50)
 
 class ServiceProcedure(MedicalRecord):

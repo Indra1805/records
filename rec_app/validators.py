@@ -5,6 +5,11 @@ from rest_framework.exceptions import ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 class VitalsValidator(serializers.Serializer):
+    patient = serializers.IntegerField(required=True, error_messages={
+        "required": "Patient is a required field.",
+        "invalid": "Invalid patient ID."
+    })
+
     blood_pressure = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=7, error_messages={
         "required": "Blood pressure is a required field.",
         "null": "Blood pressure cannot be null.",
@@ -24,6 +29,20 @@ class VitalsValidator(serializers.Serializer):
         "max_length": "GRBS cannot exceed 50 characters."
     })
 
+    cvs = serializers.CharField(required=True, allow_null=False, allow_blank = False, max_length=50, error_messages={
+        "required": "CVS is a required field.",
+        "null": "CVS cannot be null.",
+        "blank": "CVS cannot be empty.",
+        "max_length": "CVS cannot exceed 50 characters."
+    })
+
+    cns = serializers.CharField(required=True, allow_null=False, allow_blank = False, max_length=50, error_messages={
+        "required": "CNS is a required field.",
+        "null": "CNS cannot be null.",
+        "blank": "CNS cannot be empty.",
+        "max_length": "CNS cannot exceed 50 characters."
+    })
+
     respiratory_rate = serializers.IntegerField(required=True, error_messages={
         "required": "Respiratory rate is a required field.",
         "invalid": "Invalid respiratory rate value."
@@ -41,37 +60,26 @@ class VitalsValidator(serializers.Serializer):
 
 
 class LabResultValidator(serializers.Serializer):
-    hemoglobin = serializers.FloatField(required=True, error_messages={
-        "required": "Hemoglobin is a required field.",
-        "invalid": "Invalid hemoglobin value."
+    patient = serializers.IntegerField(required=True, error_messages={
+        "required": "Patient is a required field.",
+        "invalid": "Invalid patient ID."
     })
 
-    white_blood_cells = serializers.FloatField(required=True, error_messages={
-        "required": "White blood cells count is a required field.",
-        "invalid": "Invalid white blood cells count value."
+    title = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=255, error_messages={
+        "required": "Title is a required field.",
+        "null": "Title cannot be null.",
+        "blank": "Title cannot be empty.",
+        "max_length": "Title cannot exceed 255 characters."
     })
 
-    platelets = serializers.FloatField(required=True, error_messages={
-        "required": "Platelet count is a required field.",
-        "invalid": "Invalid platelet count value."
-    })
-
-    test_name = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=255, error_messages={
-        "required": "Test name is a required field.",
-        "null": "Test name cannot be null.",
-        "blank": "Test name cannot be empty.",
-        "max_length": "Test name cannot exceed 255 characters."
-    })
-
-    result_value = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=255, error_messages={
-        "required": "Result value is a required field.",
-        "null": "Result value cannot be null.",
-        "blank": "Result value cannot be empty.",
-        "max_length": "Result value cannot exceed 255 characters."
-    })
 
 
 class ImagingValidator(serializers.Serializer):
+    patient = serializers.IntegerField(required=True, error_messages={
+        "required": "Patient is a required field.",
+        "invalid": "Invalid patient ID."
+    })
+
     scan_type = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=100, error_messages={
         "required": "Scan type is a required field.",
         "null": "Scan type cannot be null.",
@@ -81,6 +89,11 @@ class ImagingValidator(serializers.Serializer):
 
 
 class PrescriptionValidator(serializers.Serializer):
+    patient = serializers.IntegerField(required=True, error_messages={
+        "required": "Patient is a required field.",
+        "invalid": "Invalid patient ID."
+    })
+
     medication_name = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=100, error_messages={
         "required": "Medication name is a required field.",
         "null": "Medication name cannot be null.",
@@ -105,6 +118,11 @@ class PrescriptionValidator(serializers.Serializer):
 
 
 class ServiceProcedureValidator(serializers.Serializer):
+    patient = serializers.IntegerField(required=True, error_messages={
+        "required": "Patient is a required field.",
+        "invalid": "Invalid patient ID."
+    })
+
     procedure_name = serializers.CharField(required=True, allow_null=False, allow_blank=False, max_length=100, error_messages={
         "required": "Procedure name is a required field.",
         "null": "Procedure name cannot be null.",
