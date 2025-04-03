@@ -22,11 +22,6 @@ class MedicalRecord(models.Model):
     ]
     
     record_type = models.CharField(max_length=50, choices=RECORD_TYPES)
-    category = models.CharField(max_length=255,blank=True)
-    summary = models.TextField(blank=True)
-    report = models.FileField(upload_to='reports/',null=True,blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True  # Abstract Model
@@ -42,11 +37,21 @@ class Vitals(MedicalRecord):
     respiratory_rate = models.IntegerField()
     weight = models.FloatField()
     height = models.FloatField()
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
 class LabResult(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='lab_results')
     doctor = models.ForeignKey(StaffUsers,on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
 
 
@@ -54,6 +59,11 @@ class Imaging(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='imaging_records')
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="imaging")
     scan_type = models.CharField(max_length=100)
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
 class Prescription(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
@@ -61,12 +71,22 @@ class Prescription(MedicalRecord):
     medication_name = models.CharField(max_length=100)
     dosage = models.CharField(max_length=50)
     duration = models.CharField(max_length=50)
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
 class ServiceProcedure(MedicalRecord):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='service_procedures')
     doctor = models.ForeignKey(StaffUsers, on_delete=models.CASCADE, related_name="procedures")
     procedure_name = models.CharField(max_length=100)
     procedure_notes = models.TextField()
+    category = models.CharField(max_length=255,blank=True)
+    summary = models.TextField(blank=True)
+    report = models.FileField(upload_to='reports/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
 
 
 # Models for adding note
@@ -162,9 +182,12 @@ class InitialAssessment(models.Model):
     past_illness = models.TextField(blank=True, null=True)
     experience_feedback = models.TextField(blank=True, null=True)
     health_feedback = models.TextField(blank=True, null=True)
-    hart_feedback = models.TextField(blank=True, null=True)
+    heart_feedback = models.TextField(blank=True, null=True)
     stroke_feedback = models.TextField(blank=True, null=True)
     other_feedback = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
+
 
 
 # Careplan Feedback
@@ -184,58 +207,62 @@ class CarePlanFeedback(models.Model):
 
 class RiskFactor1(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    surgery = models.BooleanField(default=False)
-    postpartum_feedback = models.BooleanField(default=False)
-    condition_feedback = models.BooleanField(default=False)
-    contraceptive_feedback = models.BooleanField(default=False)
-    age_feedback = models.BooleanField(default=False)
+    minor_surgery = models.BooleanField(default=False)
+    age_40_to_60_yrs = models.BooleanField(default=False)
+    pregnancy_or_post_martum = models.BooleanField(default=False)
+    varicose_veins = models.BooleanField(default=False)
+    inflammatory_bowel_disease = models.BooleanField(default=False)
     obesity = models.BooleanField(default=False)
+    combined_oral = models.BooleanField(default=False)
+    contraceptives_or_HRT = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
 
 
 class RiskFactor2(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    surgery = models.BooleanField(default=False)
-    postpartum_feedback = models.BooleanField(default=False)
-    condition_feedback = models.BooleanField(default=False)
-    contraceptive_feedback = models.BooleanField(default=False)
-    age_feedback = models.BooleanField(default=False)
-    obesity = models.BooleanField(default=False)
+    age_over_60_yrs = models.BooleanField(default=False)
+    malignancy = models.BooleanField(default=False)
+    major_surgery = models.BooleanField(default=False)
+    immobilising_plaster_cast = models.BooleanField(default=False)
+    medical_or_surgical = models.BooleanField(default=False)
+    patients_confined_to = models.BooleanField(default=False)
+    bed_72_hrs = models.BooleanField(default=False)
+    central_venous_access = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
+    
     
 
 class RiskFactor3(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    age_feedback = models.BooleanField(default=False)
-    surgery_feedback = models.BooleanField(default=False)
-    surgical_feedback = models.BooleanField(default=False)
-    access_feedback = models.BooleanField(default=False)
-    health_condition_feedback = models.BooleanField(default=False)
-    feedback_on_condition = models.BooleanField(default=False)
-    bedridden_feedback = models.BooleanField(default=False)
+    history_of_DVT_or_PE = models.BooleanField(default=False)
+    myocardial_infarction = models.BooleanField(default=False)
+    congestive_heart_failure = models.BooleanField(default=False)
+    severe_sepsis_or_infection  = models.BooleanField(default=False)
+    factor_V_leiden_or_activated = models.BooleanField(default=False)
+    protein_C_resistance = models.BooleanField(default=False)
+    antithrombin_III_deficiency = models.BooleanField(default=False)
+    proteins_C_and_S_deficiency = models.BooleanField(default=False)
+    dysfibrinogenemia = models.BooleanField(default=False)
+    homocysteinemia = models.BooleanField(default=False)
+    prothrombin_mutation_20210A = models.BooleanField(default=False)
+    lupus_anticoagulant = models.BooleanField(default=False)
+    antiphospholipid_antibodies = models.BooleanField(default=False)
+    myeloproliferative_disorders = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
     
 
 class RiskFactor4(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    history_of_feedback = models.BooleanField(default=False)
-    heart_failure_feedback = models.BooleanField(default=False)
-    resistance_feedback = models.BooleanField(default=False)
-    deficiency_feedback = models.BooleanField(default=False)
-    health_condition_feedback = models.BooleanField(default=False)
-    condition_feedback = models.BooleanField(default=False)
-    thrombocytopenia_feedback = models.BooleanField(default=False)
-    heart_feedback = models.BooleanField(default=False)
-    infection_feedback = models.BooleanField(default=False)
-    mutation_feedback = models.BooleanField(default=False)
-    antibody_feedback = models.BooleanField(default=False)
-    disorder_feedback = models.BooleanField(default=False)
-    syndrome_feedback = models.BooleanField(default=False)
-    
-
-class RiskFactor5(models.Model):
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    elective_surgery_feedback = models.BooleanField(default=False)
-    fracture_feedback = models.BooleanField(default=False)
-    trauma_feedback = models.BooleanField(default=False)
-    surgery_feedback = models.BooleanField(default=False)
-    stroke_feedback = models.BooleanField(default=False)
-    injury_feedback = models.BooleanField(default=False)
+    elective_major_lower = models.BooleanField(default=False)
+    extremity = models.BooleanField(default=False)
+    arthroplasty = models.BooleanField(default=False)
+    stroke_feedbackhip_pelvis_or_leg_fracture = models.BooleanField(default=False)
+    stroke = models.BooleanField(default=False)
+    multiple_trauma = models.BooleanField(default=False)
+    acute_spinal_cord_injury = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True) 
 

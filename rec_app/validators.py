@@ -397,69 +397,66 @@ class CarePlanFeedbackUpdateValidator(serializers.Serializer):
 class RiskFactor1Validator:
     def validate_risk_data(self, data):
         if sum([data.get(field, False) for field in [
-            'surgery',
-            'postpartum_feedback',
-            'contraceptive_feedback',
-            'age_feedback',
-            'condition_feedback',
-            'obesity'
-        ]]) > 6:
+            'minor_surgery',
+            'age_40_to_60_yrs',
+            'pregnancy_or_post_martum',
+            'varicose_veins',
+            'inflammatory_bowel_disease',
+            'obesity',
+            'combined_oral',
+            'contraceptives_or_HRT'
+        ]]) > 8:
             raise ValidationError("Invalid data. More than 6 selections are not allowed.")
 
 class RiskFactor2Validator:
     def validate_risk_data(self, data):
         if sum([data.get(field, False) for field in [
-            'surgery',
-            'postpartum_feedback',
-            'contraceptive_feedback',
-            'age_feedback',
-            'condition_feedback',
-            'obesity'
-        ]]) > 6:
+            'age_over_60_yrs',
+            'malignancy',
+            'major_surgery',
+            'immobilising_plaster_cast',
+            'medical_or_surgical',
+            'patients_confined_to',
+            'bed_72_hrs',
+            'central_venous_access'
+        ]]) > 8:
             raise ValidationError("Invalid data. More than 6 selections are not allowed.")
 
 
 class RiskFactor3Validator:
     def validate_risk_data(self, data):
         if sum([data.get(field, False) for field in [
-            'age_feedback',
-            'surgery_feedback',
-            'surgical_feedback',
-            'access_feedback',
-            'health_condition_feedback',
-            'feedback_on_condition',
-            'bedridden_feedback'
-        ]]) > 7:
-            raise ValidationError("Invalid data. More than 7 selections are not allowed.")
+            'history_of_DVT_or_PE',
+            'myocardial_infarction',
+            'congestive_heart_failure',
+            'severe_sepsis_or_infection',
+            'factor_V_leiden_or_activated',
+            'protein_C_resistance',
+            'antithrombin_III_deficiency',
+            'proteins_C_and_S_deficiency',
+            'dysfibrinogenemia',
+            'homocysteinemia',
+            'prothrombin_mutation_20210A',
+            'lupus_anticoagulant',
+            'antiphospholipid_antibodies',
+            'myeloproliferative_disorders'
+        ]]) > 14:
+            raise ValidationError("Invalid data. More than 13 selections are not allowed.")
+
+
 
 class RiskFactor4Validator:
     def validate_risk_data(self, data):
         if sum([data.get(field, False) for field in [
-            'history_of_feedback',
-            'heart_failure_feedback',
-            'resistance_feedback',
-            'deficiency_feedback',
-            'health_condition_feedback',
-            'condition_feedback',
-            'thrombocytopenia_feedback',
-            'heart_feedback',
-            'infection_feedback',
-            'mutation_feedback',
-            'antibody_feedback',
-            'disorder_feedback',
-            'syndrome_feedback'
-        ]]) > 13:
-            raise ValidationError("Invalid data. More than 13 selections are not allowed.")
+            'elective_major_lower',
+            'extremity',
+            'arthroplasty',
+            'stroke_feedbackhip_pelvis_or_leg_fracture',
+            'stroke',
+            'multiple_trauma',
+            'acute_spinal_cord_injury'
+        ]]) > 7:
+            raise ValidationError("Invalid data. More than 7 selections are not allowed.")
 
 
-class RiskFactor5Validator:
-    def validate_risk_data(self, data):
-        if sum([data.get(field, False) for field in [
-            'elective_surgery_feedback',
-            'fracture_feedback',
-            'trauma_feedback',
-            'surgery_feedback',
-            'stroke_feedback',
-            'injury_feedback',
-        ]]) > 6:
-            raise ValidationError("Invalid data. More than 6 selections are not allowed.")
+

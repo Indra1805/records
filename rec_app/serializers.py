@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from .models import Vitals, LabResult,Imaging,Prescription,ServiceProcedure
 from patients.models import Patient
-from .models import NursingNotes,ProgressNote,TreatmentChart, PainAssessment,InitialAssessment,CarePlanFeedback,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4,RiskFactor5
-from .validators import validate_character_of_service,validate_factors_improving_experience,RiskFactor1Validator,RiskFactor2Validator,RiskFactor3Validator,RiskFactor4Validator,RiskFactor5Validator
+from .models import NursingNotes,ProgressNote,TreatmentChart, PainAssessment,InitialAssessment,CarePlanFeedback,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4
+from .validators import validate_character_of_service,validate_factors_improving_experience,RiskFactor1Validator,RiskFactor2Validator,RiskFactor3Validator,RiskFactor4Validator
 
 
 # serializers for Adding Records
@@ -17,31 +17,31 @@ class VitalsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vitals
-        fields = ['patient', 'blood_pressure', 'bmi', 'grbs','cns','cvs', 'respiratory_rate', 'weight', 'height']
+        fields = ['patient', 'blood_pressure', 'bmi', 'grbs','cns','cvs', 'respiratory_rate', 'weight', 'height','category','summary','report','created_at','last_updated_at']
 
 class LabResultSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = LabResult
-        fields = ['patient','title']
+        fields = ['patient','title','category','summary','report','created_at','last_updated_at']
 
 class ImagingSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = Imaging
-        fields = ['patient','sacn_type']
+        fields = ['patient','sacn_type','category','summary','report','created_at','last_updated_at']
 
 class PrescriptionSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = Prescription
-        fields = ['patient','medication_name','dosage','duration']
+        fields = ['patient','medication_name','dosage','duration','category','summary','report','created_at','last_updated_at']
 
 class ServiceProcedureSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), required=False) 
     class Meta:
         model = ServiceProcedure
-        fields = ['patient','procedure_name','procedure_notes']
+        fields = ['patient','procedure_name','procedure_notes','category','summary','report','created_at','last_updated_at']
 
 def get_serializer_class(record_type):
     serializer_mapping = {
@@ -69,7 +69,7 @@ class NursingNotesSerializer(serializers.ModelSerializer):
 # Progress Notes
 
 class ProgressNoteSerializer(serializers.ModelSerializer):
-    patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
+    patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
 
     class Meta:
         model = ProgressNote
@@ -89,7 +89,7 @@ class TreatmentChartSerializer(serializers.ModelSerializer):
 # Pain Assessment
 
 class PainAssessmentSerializer(serializers.ModelSerializer):
-    patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
+    patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
     character_of_service = serializers.ListField(child=serializers.CharField(), validators=[validate_character_of_service])
     factors_improving_experience = serializers.ListField(child=serializers.CharField(), validators=[validate_factors_improving_experience])
 
@@ -107,11 +107,11 @@ class PainAssessmentSerializer(serializers.ModelSerializer):
 
 # Initial Assessment
 class InitialAssessmentSerializer(serializers.ModelSerializer):
-    patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
+    patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
 
     class Meta:
         model = InitialAssessment
-        fields = ['patient_id', 'rating_title', 'relationship_to_feedback', 'feedback_date','duration_of_experience','present_illness','past_illness','experience_feedback','health_feedback','hart_feedback','stroke_feedback','other_feedback', 'patient']
+        fields = ['patient_id', 'rating_title', 'relationship_to_feedback', 'feedback_date','duration_of_experience','present_illness','past_illness','experience_feedback','health_feedback','heart_feedback','stroke_feedback','other_feedback', 'patient']
         extra_kwargs = {
             'patient': {'write_only': True}
         }
@@ -134,12 +134,14 @@ def calculate_total_score(data, boolean_fields):
 # RiskFactor1 Serializer
 class RiskFactor1Serializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
-    surgery = serializers.BooleanField(required=False)
-    postpartum_feedback = serializers.BooleanField(required=False)
-    contraceptive_feedback = serializers.BooleanField(required=False)
-    age_feedback = serializers.BooleanField(required=False)
-    condition_feedback = serializers.BooleanField(required=False)
+    minor_surgery = serializers.BooleanField(required=False)
+    age_40_to_60_yrs = serializers.BooleanField(required=False)
+    pregnancy_or_post_martum = serializers.BooleanField(required=False)
+    varicose_veins = serializers.BooleanField(required=False)
+    inflammatory_bowel_disease = serializers.BooleanField(required=False)
     obesity = serializers.BooleanField(required=False)
+    combined_oral = serializers.BooleanField(required=False)
+    contraceptives_or_HRT = serializers.BooleanField(required=False)
     total_score = serializers.SerializerMethodField()
 
 
@@ -152,19 +154,22 @@ class RiskFactor1Serializer(serializers.ModelSerializer):
         }
 
     def get_total_score(self, obj):
-        boolean_fields = ['surgery', 'postpartum_feedback', 'contraceptive_feedback', 'age_feedback', 'condition_feedback', 'obesity']
+        boolean_fields = ['minor_surgery', 'age_40_to_60_yrs', 'pregnancy_or_post_martum', 'varicose_veins', 'inflammatory_bowel_disease', 'obesity','combined_oral','contraceptives_or_HRT']
         data = {field: getattr(obj, field) for field in boolean_fields}
         return calculate_total_score(data, boolean_fields)
+
 
 # RiskFactor2 Serializer
 class RiskFactor2Serializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
-    surgery = serializers.BooleanField(required=False)
-    postpartum_feedback = serializers.BooleanField(required=False)
-    contraceptive_feedback = serializers.BooleanField(required=False)
-    age_feedback = serializers.BooleanField(required=False)
-    condition_feedback = serializers.BooleanField(required=False)
-    obesity = serializers.BooleanField(required=False)
+    age_over_60_yrs = serializers.BooleanField(required=False)
+    malignancy = serializers.BooleanField(required=False)
+    major_surgery = serializers.BooleanField(required=False)
+    immobilising_plaster_cast = serializers.BooleanField(required=False)
+    medical_or_surgical = serializers.BooleanField(required=False)
+    patients_confined_to = serializers.BooleanField(required=False)
+    bed_72_hrs = serializers.BooleanField(required=False)
+    central_venous_access = serializers.BooleanField(required=False)
     total_score = serializers.SerializerMethodField()
 
     class Meta:
@@ -176,20 +181,29 @@ class RiskFactor2Serializer(serializers.ModelSerializer):
         }
 
     def get_total_score(self, obj):
-        boolean_fields = ['surgery', 'postpartum_feedback', 'contraceptive_feedback', 'age_feedback', 'condition_feedback', 'obesity']
+        boolean_fields = ['age_over_60_yrs', 'malignancy', 'major_surgery', 'immobilising_plaster_cast', 'medical_or_surgical', 'patients_confined_to','bed_72_hrs','central_venous_access']
         data = {field: getattr(obj, field) for field in boolean_fields}
-        return calculate_total_score(data, boolean_fields)
+        total_score = sum(2 for field in boolean_fields if data.get(field, False))
+        return total_score
+
 
 # RiskFactor3 Serializer
 class RiskFactor3Serializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
-    age_feedback = serializers.BooleanField(required=False)
-    surgery_feedback = serializers.BooleanField(required=False)
-    surgical_feedback = serializers.BooleanField(required=False)
-    access_feedback = serializers.BooleanField(required=False)
-    health_condition_feedback = serializers.BooleanField(required=False)
-    feedback_on_condition = serializers.BooleanField(required=False)
-    bedridden_feedback = serializers.BooleanField(required=False)
+    history_of_DVT_or_PE = serializers.BooleanField(required=False)
+    myocardial_infarction = serializers.BooleanField(required=False)
+    congestive_heart_failure = serializers.BooleanField(required=False)
+    severe_sepsis_or_infection = serializers.BooleanField(required=False)
+    factor_V_leiden_or_activated = serializers.BooleanField(required=False)
+    protein_C_resistance = serializers.BooleanField(required=False)
+    antithrombin_III_deficiency = serializers.BooleanField(required=False)
+    proteins_C_and_S_deficiency = serializers.BooleanField(required=False)
+    dysfibrinogenemia = serializers.BooleanField(required=False)
+    homocysteinemia = serializers.BooleanField(required=False)
+    prothrombin_mutation_20210A = serializers.BooleanField(required=False)
+    lupus_anticoagulant = serializers.BooleanField(required=False)
+    antiphospholipid_antibodies = serializers.BooleanField(required=False)
+    myeloproliferative_disorders = serializers.BooleanField(required=False)
     total_score = serializers.SerializerMethodField()
 
     class Meta:
@@ -201,27 +215,25 @@ class RiskFactor3Serializer(serializers.ModelSerializer):
         }
 
     def get_total_score(self, obj):
-        boolean_fields = ['age_feedback', 'surgery_feedback', 'surgical_feedback', 'access_feedback',
-                           'health_condition_feedback', 'feedback_on_condition', 'bedridden_feedback']
+        boolean_fields = ['history_of_DVT_or_PE', 'myocardial_infarction', 'congestive_heart_failure',
+                           'severe_sepsis_or_infection', 'factor_V_leiden_or_activated', 'protein_C_resistance',
+                           'antithrombin_III_deficiency', 'proteins_C_and_S_deficiency', 'dysfibrinogenemia',
+                           'homocysteinemia', 'prothrombin_mutation_20210A', 'lupus_anticoagulant', 'antiphospholipid_antibodies','myeloproliferative_disorders']
         data = {field: getattr(obj, field) for field in boolean_fields}
-        return calculate_total_score(data, boolean_fields)
+        total_score = sum(3 for field in boolean_fields if data.get(field, False))
+        return total_score
+
 
 # RiskFactor4 Serializer
 class RiskFactor4Serializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
-    history_of_feedback = serializers.BooleanField(required=False)
-    heart_failure_feedback = serializers.BooleanField(required=False)
-    resistance_feedback = serializers.BooleanField(required=False)
-    deficiency_feedback = serializers.BooleanField(required=False)
-    health_condition_feedback = serializers.BooleanField(required=False)
-    condition_feedback = serializers.BooleanField(required=False)
-    thrombocytopenia_feedback = serializers.BooleanField(required=False)
-    heart_feedback = serializers.BooleanField(required=False)
-    infection_feedback = serializers.BooleanField(required=False)
-    mutation_feedback = serializers.BooleanField(required=False)
-    antibody_feedback = serializers.BooleanField(required=False)
-    disorder_feedback = serializers.BooleanField(required=False)
-    syndrome_feedback = serializers.BooleanField(required=False)
+    elective_major_lower = serializers.BooleanField(required=False)
+    extremity = serializers.BooleanField(required=False)
+    arthroplasty = serializers.BooleanField(required=False)
+    stroke_feedbackhip_pelvis_or_leg_fracture = serializers.BooleanField(required=False)
+    stroke = serializers.BooleanField(required=False)
+    multiple_trauma = serializers.BooleanField(required=False)
+    acute_spinal_cord_injury = serializers.BooleanField(required=False)
     total_score = serializers.SerializerMethodField()
 
     class Meta:
@@ -233,34 +245,11 @@ class RiskFactor4Serializer(serializers.ModelSerializer):
         }
 
     def get_total_score(self, obj):
-        boolean_fields = ['history_of_feedback', 'heart_failure_feedback', 'resistance_feedback',
-                           'deficiency_feedback', 'health_condition_feedback', 'condition_feedback',
-                           'thrombocytopenia_feedback', 'heart_feedback', 'infection_feedback',
-                           'mutation_feedback', 'antibody_feedback', 'disorder_feedback', 'syndrome_feedback']
+        boolean_fields = ['elective_major_lower', 'extremity', 'arthroplasty', 'stroke_feedbackhip_pelvis_or_leg_fracture',
+                           'stroke', 'multiple_trauma', 'acute_spinal_cord_injury']
         data = {field: getattr(obj, field) for field in boolean_fields}
-        return calculate_total_score(data, boolean_fields)
+        total_score = sum(5 for field in boolean_fields if data.get(field, False))
+        return total_score
 
-# RiskFactor5 Serializer
-class RiskFactor5Serializer(serializers.ModelSerializer):
-    patient_id = serializers.CharField(source='patient.patient_id', read_only=True)
-    elective_surgery_feedback = serializers.BooleanField(required=False)
-    fracture_feedback = serializers.BooleanField(required=False)
-    trauma_feedback = serializers.BooleanField(required=False)
-    surgery_feedback = serializers.BooleanField(required=False)
-    stroke_feedback = serializers.BooleanField(required=False)
-    injury_feedback = serializers.BooleanField(required=False)
-    total_score = serializers.SerializerMethodField()
 
-    class Meta:
-        model = RiskFactor5
-        fields = '__all__'
 
-        extra_kwargs = {
-            'patient': {'write_only': True}
-        }
-
-    def get_total_score(self, obj):
-        boolean_fields = ['elective_surgery_feedback', 'fracture_feedback', 'trauma_feedback',
-                           'surgery_feedback', 'stroke_feedback', 'injury_feedback']
-        data = {field: getattr(obj, field) for field in boolean_fields}
-        return calculate_total_score(data, boolean_fields)

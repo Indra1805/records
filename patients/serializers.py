@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from patients.models import Patient, Invoice
-from rec_app.models import Prescription
+# from rec_app.models import Prescription
 
 # Create the serailizers over here
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from . import models, serializers, validators
-from rec_app.models import Prescription
+# from rec_app.models import Prescription
 from rest_framework.views import APIView
 from core import messages
 from core.exceptions import SerializerError

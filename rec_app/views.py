@@ -1,20 +1,32 @@
 from django.shortcuts import render,get_object_or_404
 from rest_framework.response import Response
 from . import models, serializers, validators
-from rec_app.models import *
-from rec_app.serializers import *
 from rec_app.validators import *
 from rest_framework.views import APIView
 from core import messages
 from core.exceptions import SerializerError
 from django.db import transaction
-from rec_app.serializers import *
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.db.models import Q
 from .serializers import get_serializer_class
-from core import messages
+from rest_framework.parsers import MultiPartParser, FormParser
+from . import models, serializers, validators
+from rest_framework.exceptions import ValidationError, NotFound
+from django.utils import timezone
+from rest_framework import status
+from patients.models import Patient
+from .models import (MedicalRecord,ProgressNote,PainAssessment,InitialAssessment,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4)
+from .serializers import (VitalsSerializer,LabResultSerializer,ImagingSerializer,PrescriptionSerializer,ServiceProcedureSerializer,NursingNotesSerializer,ProgressNoteSerializer,TreatmentChartSerializer,PainAssessmentSerializer,
+                          InitialAssessmentSerializer,CarePlanFeedbackSerializer,RiskFactor1Serializer,RiskFactor2Serializer,
+                          RiskFactor3Serializer,RiskFactor4Serializer)
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework import serializers
+from django.shortcuts import get_object_or_404
+from core.exceptions import SerializerError  
+from core import messages  
+from django.core.exceptions import ObjectDoesNotExist
 
+# create your views here
 
 def get_serializer_class(record_type):
     serializer_classes = {
@@ -27,118 +39,7 @@ def get_serializer_class(record_type):
     return serializer_classes.get(record_type)
 
 
-
-# class MedicalRecordRetrieveAPIView(APIView): 
-#     def get(self, request):
-#         context = {"success": 1, "message": "Data Retrieved", "data": {}}
-#         try:
-#             record_type = request.query_params.get("record_type")
-#             patient_id = request.query_params.get("patient_id")
-#             patient_name = request.query_params.get("patient_name")
-#             record_id = request.query_params.get("record_id")
-
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             model_class = serializer_class.Meta.model
-#             queryset = model_class.objects.all()
-
-#             # Filtering Logic
-#             filters = Q()
-#             if patient_id:
-#                 filters &= Q(patient__id=patient_id)
-#             if patient_name:
-#                 filters &= Q(patient__patient_name__icontains=patient_name)
-#             if record_id:
-#                 filters &= Q(id=record_id)
-
-#             queryset = queryset.filter(filters)
-
-#             serializer = serializer_class(queryset, many=True)
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
-
-
-# class MedicalRecordCreateAPIView(APIView):
-#     def post(self, request):
-#         context = {"success": 1, "message": messages.DATA_SAVED, "data": {}}
-#         try:
-#             record_type = request.data.get("record_type")
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             serializer = serializer_class(data=request.data)
-#             if not serializer.is_valid():
-#                 context["success"] = 0
-#                 context["message"] = serializer.errors
-#                 return Response(context)
-
-#             serializer.save()
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
 class MedicalRecordRetrieveAPIView(APIView):
-    # def get(self, request):
-    #     context = {"success": 1, "message": "Records fetched successfully", "data": []}
-
-    #     try:
-    #         patient_id = request.GET.get("patient_id")
-    #         phone_number = request.GET.get("phone_number")
-    #         patient_name = request.GET.get("patient_name")
-    #         record_id = request.GET.get("record_id")
-    #         record_type = request.GET.get("record_type")  # Optional filter for record type
-
-    #         # Building query dynamically
-    #         filters = Q()
-    #         if patient_id:
-    #             filters |= Q(patient__patient_id=patient_id)
-    #         if phone_number:
-    #             filters |= Q(patient__phone_number=phone_number)
-    #         if patient_name:
-    #             filters |= Q(patient__name__icontains=patient_name)
-    #         if record_id:
-    #             filters |= Q(id=record_id)
-    #         if record_type:
-    #             filters &= Q(record_type=record_type)
-
-    #         records = MedicalRecord.objects.filter(filters)
-
-    #         if not records.exists():
-    #             context["success"] = 0
-    #             context["message"] = "No records found"
-    #             return Response(context)
-
-    #         serializer = MedicalRecordSerializer(records, many=True)  # Ensure MedicalRecordSerializer is properly imported
-    #         context["data"] = serializer.data
-    #         return Response(context)
-
-    #     except Exception as e:
-    #         context["success"] = 0
-    #         context["message"] = str(e)
-    #         return Response(context)
-
-
     def get(self, request):
         patient_id = request.query_params.get("patient_id")
         phone_number = request.query_params.get("phone_number")
@@ -176,46 +77,7 @@ class MedicalRecordRetrieveAPIView(APIView):
         except Exception as e:
             return Response({"success": 0, "message": str(e)})
 
-    # def get(self, request):
-    #     context = {"success": 1, "message": "Data retrieved", "data": {}}
-
-    #     try:
-    #         patient_id = request.query_params.get("patient_id")
-    #         record_type = request.query_params.get("record_type")
-
-    #         if not patient_id:
-    #             context["success"] = 0
-    #             context["message"] = "Patient ID is required"
-    #             return Response(context)
-
-    #         try:
-    #             patient = Patient.objects.get(patient_id=patient_id)
-    #         except Patient.DoesNotExist:
-    #             context["success"] = 0
-    #             context["message"] = "Patient not found"
-    #             return Response(context)
-
-    #         serializer_class = get_serializer_class(record_type)
-
-    #         if not serializer_class:
-    #             context["success"] = 0
-    #             context["message"] = "Invalid record type"
-    #             return Response(context)
-
-    #         records = serializer_class.Meta.model.objects.filter(patient=patient)
-    #         serializer = serializer_class(records, many=True)
-    #         context["data"] = serializer.data
-
-    #         return Response(context)
-
-    #     except Exception as e:
-    #         context["success"] = 0
-    #         context["message"] = str(e)
-    #         return Response(context)
-
-
-
-from rest_framework.parsers import MultiPartParser, FormParser
+    
 
 class MedicalRecordCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser) 
@@ -323,67 +185,9 @@ class MedicalRecordUpdateAPIView(APIView):
             context["success"] = 0
             context["message"] = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# class MedicalRecordUpdateAPIView(APIView):
-#     def put(self, request, pk):
-#         context = {"success": 1, "message": messages.DATA_UPDATED, "data": {}}
-#         try:
-#             record_type = request.data.get("record_type")
-#             serializer_class = get_serializer_class(record_type)
-
-#             if not serializer_class:
-#                 context["success"] = 0
-#                 context["message"] = "Invalid record type"
-#                 return Response(context)
-
-#             model_class = serializer_class.Meta.model
-#             instance = model_class.objects.get(pk=pk)
-
-#             serializer = serializer_class(instance, data=request.data, partial=True)
-#             if not serializer.is_valid():
-#                 context["success"] = 0
-#                 context["message"] = serializer.errors
-#                 return Response(context)
-
-#             serializer.save()
-#             context["data"] = serializer.data
-#             return Response(context)
-
-#         except model_class.DoesNotExist:
-#             context["success"] = 0
-#             context["message"] = "Record not found"
-#             return Response(context)
-
-#         except Exception as e:
-#             context["success"] = 0
-#             context["message"] = str(e)
-#             return Response(context)
-
-
-
-
+        
 
 # Add Notes
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from . import models, serializers, validators
-from rest_framework.exceptions import ValidationError, NotFound
-from django.utils import timezone
-from rest_framework import status
-from patients.models import Patient
-from .models import ProgressNote,PainAssessment,InitialAssessment,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4,RiskFactor5
-from .serializers import NursingNotesSerializer,ProgressNoteSerializer,TreatmentChartSerializer,PainAssessmentSerializer,InitialAssessmentSerializer,CarePlanFeedbackSerializer,RiskFactor1Serializer,RiskFactor2Serializer,RiskFactor3Serializer,RiskFactor4Serializer,RiskFactor5Serializer
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework import serializers
-from django.shortcuts import get_object_or_404
-from core.exceptions import SerializerError  
-from core import messages  
-from django.core.exceptions import ObjectDoesNotExist
-
-# Create your views here.
-
 
 # Nursing Notes
 
@@ -1294,7 +1098,6 @@ class CreateMultipleRiskFactorsAPIView(APIView):
         2: RiskFactor2Serializer,
         3: RiskFactor3Serializer,
         4: RiskFactor4Serializer,
-        5: RiskFactor5Serializer,
     }
 
     def get(self, request, *args, **kwargs):
@@ -1367,13 +1170,14 @@ class CreateMultipleRiskFactorsAPIView(APIView):
 
 
 
+
+
 class RetrieveMultipleRiskFactorsAPIView(APIView):
     RISK_FACTOR_SERIALIZERS = {
         1: RiskFactor1Serializer,
         2: RiskFactor2Serializer,
         3: RiskFactor3Serializer,
         4: RiskFactor4Serializer,
-        5: RiskFactor5Serializer,
     }
 
     def get(self, request, patient_id, *args, **kwargs):
@@ -1392,32 +1196,45 @@ class RetrieveMultipleRiskFactorsAPIView(APIView):
 
             # Define boolean fields for each risk factor
             risk_factor_boolean_fields = {
-                1: ['surgery', 'postpartum_feedback', 'contraceptive_feedback',
-                    'age_feedback', 'condition_feedback', 'obesity'],
-                2: ['surgery', 'postpartum_feedback', 'contraceptive_feedback',
-                    'age_feedback', 'condition_feedback', 'obesity'],
-                3: ['age_feedback', 'surgery_feedback', 'surgical_feedback',
-                    'access_feedback', 'health_condition_feedback',
-                    'feedback_on_condition', 'bedridden_feedback'],
-                4: ['history_of_feedback', 'heart_failure_feedback', 'resistance_feedback',
-                    'deficiency_feedback', 'health_condition_feedback', 'condition_feedback',
-                    'thrombocytopenia_feedback', 'heart_feedback', 'infection_feedback',
-                    'mutation_feedback', 'antibody_feedback', 'disorder_feedback', 'syndrome_feedback'],
-                5: ['elective_surgery_feedback', 'fracture_feedback', 'trauma_feedback',
-                    'surgery_feedback', 'stroke_feedback', 'injury_feedback'],
+                1: ['minor_surgery', 'age_40_to_60_yrs', 'pregnancy_or_post_martum',
+                    'varicose_veins', 'inflammatory_bowel_disease', 'obesity', 'combined_oral', 'contraceptives_or_HRT'],
+                2: ['age_over_60_yrs', 'malignancy', 'major_surgery',
+                    'immobilising_plaster_cast', 'medical_or_surgical', 'patients_confined_to', 'bed_72_hrs', 'central_venous_access'],
+                3: ['history_of_DVT_or_PE', 'myocardial_infarction', 'congestive_heart_failure',
+                    'severe_sepsis_or_infection', 'factor_V_leiden_or_activated',
+                    'protein_C_resistance', 'antithrombin_III_deficiency', 'proteins_C_and_S_deficiency', 
+                    'dysfibrinogenemia', 'homocysteinemia', 'prothrombin_mutation_20210A', 'lupus_anticoagulant', 
+                    'antiphospholipid_antibodies', 'myeloproliferative_disorders'],
+                4: ['elective_major_lower', 'extremity', 'arthroplasty',
+                    'stroke_feedbackhip_pelvis_or_leg_fracture', 'stroke', 'multiple_trauma',
+                    'acute_spinal_cord_injury'],
+            }
+
+            # Define scoring increments for each risk factor
+            score_weights = {
+                1: 1,
+                2: 2,
+                3: 3,
+                4: 5
             }
 
             # Iterate through each risk factor
-            for risk_factor_id in range(1, 6):
+            for risk_factor_id in range(1, 5):
                 risk_factor_model = globals()[f'RiskFactor{risk_factor_id}']
                 serializer_class = self.RISK_FACTOR_SERIALIZERS[risk_factor_id]
                 risk_factor_data = risk_factor_model.objects.filter(patient=patient)
+
+                # Get the weight for current risk_factor_id
+                weight = score_weights.get(risk_factor_id, 1)
 
                 # Calculate total_score for each risk factor object
                 serialized_data = []
                 for obj in risk_factor_data:
                     data = serializer_class(obj).data
-                    data['total_score'] = sum(data.get(field, False) for field in risk_factor_boolean_fields[risk_factor_id])
+                    
+                    # Adjusted total_score calculation based on risk_factor_id
+                    data['total_score'] = sum(weight for field in risk_factor_boolean_fields[risk_factor_id] if data.get(field, False))
+
                     serialized_data.append(data)
 
                 if serialized_data:
@@ -1440,6 +1257,7 @@ class RetrieveMultipleRiskFactorsAPIView(APIView):
 
 
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class UpdateMultipleRiskFactorsAPIView(APIView):
     RISK_FACTOR_SERIALIZERS = {
@@ -1447,7 +1265,6 @@ class UpdateMultipleRiskFactorsAPIView(APIView):
         2: RiskFactor2Serializer,
         3: RiskFactor3Serializer,
         4: RiskFactor4Serializer,
-        5: RiskFactor5Serializer,
     }
 
     def get(self, request, patient_id, *args, **kwargs):
@@ -1466,32 +1283,45 @@ class UpdateMultipleRiskFactorsAPIView(APIView):
 
             # Define boolean fields for each risk factor
             risk_factor_boolean_fields = {
-                1: ['surgery', 'postpartum_feedback', 'contraceptive_feedback',
-                    'age_feedback', 'condition_feedback', 'obesity'],
-                2: ['surgery', 'postpartum_feedback', 'contraceptive_feedback',
-                    'age_feedback', 'condition_feedback', 'obesity'],
-                3: ['age_feedback', 'surgery_feedback', 'surgical_feedback',
-                    'access_feedback', 'health_condition_feedback',
-                    'feedback_on_condition', 'bedridden_feedback'],
-                4: ['history_of_feedback', 'heart_failure_feedback', 'resistance_feedback',
-                    'deficiency_feedback', 'health_condition_feedback', 'condition_feedback',
-                    'thrombocytopenia_feedback', 'heart_feedback', 'infection_feedback',
-                    'mutation_feedback', 'antibody_feedback', 'disorder_feedback', 'syndrome_feedback'],
-                5: ['elective_surgery_feedback', 'fracture_feedback', 'trauma_feedback',
-                    'surgery_feedback', 'stroke_feedback', 'injury_feedback'],
+                1: ['minor_surgery', 'age_40_to_60_yrs', 'pregnancy_or_post_martum',
+                    'varicose_veins', 'inflammatory_bowel_disease', 'obesity', 'combined_oral', 'contraceptives_or_HRT'],
+                2: ['age_over_60_yrs', 'malignancy', 'major_surgery',
+                    'immobilising_plaster_cast', 'medical_or_surgical', 'patients_confined_to', 'bed_72_hrs', 'central_venous_access'],
+                3: ['history_of_DVT_or_PE', 'myocardial_infarction', 'congestive_heart_failure',
+                    'severe_sepsis_or_infection', 'factor_V_leiden_or_activated',
+                    'protein_C_resistance', 'antithrombin_III_deficiency', 'proteins_C_and_S_deficiency', 
+                    'dysfibrinogenemia', 'homocysteinemia', 'prothrombin_mutation_20210A', 'lupus_anticoagulant', 
+                    'antiphospholipid_antibodies', 'myeloproliferative_disorders'],
+                4: ['elective_major_lower', 'extremity', 'arthroplasty',
+                    'stroke_feedbackhip_pelvis_or_leg_fracture', 'stroke', 'multiple_trauma',
+                    'acute_spinal_cord_injury'],
+            }
+
+            # Define scoring increments for each risk factor
+            score_weights = {
+                1: 1,
+                2: 2,
+                3: 3,
+                4: 5
             }
 
             # Iterate through each risk factor
-            for risk_factor_id in range(1, 6):
+            for risk_factor_id in range(1, 5):
                 risk_factor_model = globals()[f'RiskFactor{risk_factor_id}']
                 serializer_class = self.RISK_FACTOR_SERIALIZERS[risk_factor_id]
                 risk_factor_data = risk_factor_model.objects.filter(patient=patient)
+
+                # Get the weight for current risk_factor_id
+                weight = score_weights.get(risk_factor_id, 1)
 
                 # Calculate total_score for each risk factor object
                 serialized_data = []
                 for obj in risk_factor_data:
                     data = serializer_class(obj).data
-                    data['total_score'] = sum(data.get(field, False) for field in risk_factor_boolean_fields[risk_factor_id])
+                    
+                    # Adjusted total_score calculation based on risk_factor_id
+                    data['total_score'] = sum(weight for field in risk_factor_boolean_fields[risk_factor_id] if data.get(field, False))
+
                     serialized_data.append(data)
 
                 if serialized_data:
