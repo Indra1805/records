@@ -88,10 +88,32 @@ class TreatmentChartSerializer(serializers.ModelSerializer):
 
 # Pain Assessment
 
+# class PainAssessmentSerializer(serializers.ModelSerializer):
+#     patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
+#     character_of_service = serializers.ListField(child=serializers.CharField(), validators=[validate_character_of_service])
+#     factors_improving_experience = serializers.ListField(child=serializers.CharField(), validators=[validate_factors_improving_experience])
+
+#     class Meta:
+#         model = PainAssessment
+#         fields = [
+#             'patient_id', 'pain_intensity', 'location_of_service', 
+#             'quality_of_service', 'character_of_service', 
+#             'factors_affecting_rating', 'factors_improving_experience',
+#             'created_at', 'updated_at', 'patient'
+#         ]
+#         extra_kwargs = {
+#             'patient': {'write_only': True},
+#         }
+
+
 class PainAssessmentSerializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
-    character_of_service = serializers.ListField(child=serializers.CharField(), validators=[validate_character_of_service])
-    factors_improving_experience = serializers.ListField(child=serializers.CharField(), validators=[validate_factors_improving_experience])
+    character_of_service = serializers.ListField(
+        child=serializers.CharField(), validators=[validate_character_of_service]
+    )
+    factors_improving_experience = serializers.ListField(
+        child=serializers.CharField(), validators=[validate_factors_improving_experience]
+    )
 
     class Meta:
         model = PainAssessment
@@ -104,6 +126,22 @@ class PainAssessmentSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'patient': {'write_only': True},
         }
+
+    def create(self, validated_data):
+        patient_id = validated_data.pop('patient')['patient_id']
+        patient = Patient.objects.get(patient_id=patient_id)
+        return PainAssessment.objects.create(patient=patient, **validated_data)
+
+    def update(self, instance, validated_data):
+        if 'patient' in validated_data:
+            patient_id = validated_data.pop('patient')['patient_id']
+            instance.patient = Patient.objects.get(patient_id=patient_id)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
 
 # Initial Assessment
 class InitialAssessmentSerializer(serializers.ModelSerializer):

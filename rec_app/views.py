@@ -699,7 +699,7 @@ class CreatePainAssessmentAPIView(APIView):
 
             serializer = PainAssessmentSerializer(data=data)
             if not serializer.is_valid():
-                raise ValidationError(serializer.errors)
+                raise ValidationError({"errors": serializer.errors})
 
             serializer.save()
             context['data'] = serializer.data

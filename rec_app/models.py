@@ -34,7 +34,7 @@ class Vitals(MedicalRecord):
     grbs = models.CharField(max_length=50)
     cvs = models.CharField(max_length=50)
     cns = models.CharField(max_length=50)
-    respiratory_rate = models.IntegerField()
+    respiratory_rate = models.IntegerField()                                        
     weight = models.FloatField()
     height = models.FloatField()
     category = models.CharField(max_length=255,blank=True)
