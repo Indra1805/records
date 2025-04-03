@@ -77,7 +77,13 @@ class MedicalRecordRetrieveAPIView(APIView):
         except Exception as e:
             return Response({"success": 0, "message": str(e)})
 
+<<<<<<< HEAD
     
+=======
+
+
+from rest_framework.parsers import MultiPartParser, FormParser
+>>>>>>> 7bf3a73f4f49b770fc78596c44222df56d1ade31
 
 class MedicalRecordCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser) 
@@ -185,7 +191,11 @@ class MedicalRecordUpdateAPIView(APIView):
             context["success"] = 0
             context["message"] = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 7bf3a73f4f49b770fc78596c44222df56d1ade31
 
 # Add Notes
 
