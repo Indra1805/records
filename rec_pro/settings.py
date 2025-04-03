@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'patients',
     'doctors',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'rec_pro.urls'
@@ -74,6 +76,34 @@ TEMPLATES = [
 WSGI_APPLICATION = 'rec_pro.wsgi.application'
 
 
+CORS_ALLOW_ALL_ORIGINS = True  # Allows all domains
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React Frontend
+    "https://yourfrontend.com",  # Production Frontend URL
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "x-csrftoken",
+    "accept",
+    "origin",
+    "user-agent",
+]
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -83,6 +113,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+
 
 
 # Password validation
