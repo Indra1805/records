@@ -87,6 +87,7 @@ class MedicalRecordCreateAPIView(APIView):
         try:
             patient_id = request.data.get("patient_id")
             record_type = request.data.get("record_type")
+            report = request.FILES.get("report")
             print(request.data)
             if not patient_id:
                 context["success"] = 0
@@ -107,7 +108,13 @@ class MedicalRecordCreateAPIView(APIView):
                 context["message"] = "Invalid record type"
                 return Response(context)
 
-            serializer = serializer_class(data=request.data)
+
+            # Add file to request data
+            data = request.data.copy()
+            if report:
+                data["report"] = report  # Assign the file to serializer
+
+            serializer = serializer_class(data=data)
 
             if not serializer.is_valid():
                 context["success"] = 0
@@ -138,6 +145,7 @@ class MedicalRecordUpdateAPIView(APIView):
 
         try:
             record_type = request.data.get("record_type")
+            report = request.FILES.get("report")
 
             # Check if patient exists
             try:
@@ -169,8 +177,13 @@ class MedicalRecordUpdateAPIView(APIView):
                 context["message"] = "Record not found"
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
 
+            
+            data = request.data.copy()
+            if report:
+                data["report"] = report  # Assign new file to serializer
+
             # Update record
-            serializer = serializer_class(record, data=request.data, partial=True)
+            serializer = serializer_class(record, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 context["data"] = serializer.data
