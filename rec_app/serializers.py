@@ -80,30 +80,29 @@ class ProgressNoteSerializer(serializers.ModelSerializer):
 
 # Treatment Chart
 class TreatmentChartSerializer(serializers.ModelSerializer):
-    patient = serializers.CharField(source='patient.patient_id')
     class Meta:
         model = TreatmentChart
         fields = '__all__'
+ 
+    def validate(self, data):
+        """Custom validation for required fields"""
+        required_fields = ['medicine_name', 'hrs_drops_mins', 'dose', 'time', 'medicine_details']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                raise serializers.ValidationError(f"{field} is required.")
+        return data
+ 
+class BulkTreatmentChartSerializer(serializers.Serializer):
+    medicines = TreatmentChartSerializer(many=True)
+ 
+    def create(self, validated_data):
+        medicines_data = validated_data['medicines']
+        treatment_records = [TreatmentChart(**medicine) for medicine in medicines_data]
+        return TreatmentChart.objects.bulk_create(treatment_records)
 
 
 # Pain Assessment
 
-# class PainAssessmentSerializer(serializers.ModelSerializer):
-#     patient_id = serializers.CharField(source='patient.patient_id', write_only=True)
-#     character_of_service = serializers.ListField(child=serializers.CharField(), validators=[validate_character_of_service])
-#     factors_improving_experience = serializers.ListField(child=serializers.CharField(), validators=[validate_factors_improving_experience])
-
-#     class Meta:
-#         model = PainAssessment
-#         fields = [
-#             'patient_id', 'pain_intensity', 'location_of_service', 
-#             'quality_of_service', 'character_of_service', 
-#             'factors_affecting_rating', 'factors_improving_experience',
-#             'created_at', 'updated_at', 'patient'
-#         ]
-#         extra_kwargs = {
-#             'patient': {'write_only': True},
-#         }
 
 
 class PainAssessmentSerializer(serializers.ModelSerializer):

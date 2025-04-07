@@ -18,7 +18,7 @@ urlpatterns = [
     # Progress Notes
     path('create-progress-note/', CreateProgressNoteAPIView.as_view(), name='create-progress-note'),
     path('get-progress-note/<str:patient_id>/', GetProgressNoteAPIView.as_view(), name='get-progress-note'),
-    path('update-progress-note/<str:patient_id>/', ProgressNoteDetailView.as_view(), name='progress_note_detail'),
+    path('update-progress-note/<str:patient_id>/', UpdateProgressNoteView.as_view(), name='progress_note_detail'),
 
     # Treatment Chart
     path('create-treatment-chart/', TreatmentChartAPIView.as_view(), name='treatment-notes'),

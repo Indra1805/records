@@ -127,7 +127,7 @@ class ProgressNote(models.Model):
 # Treatment Chart
 
 class TreatmentChart(models.Model):
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)  # One treatment chart per patient
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)  # One treatment chart per patient
     medicine_name = models.CharField(max_length=255)
     hrs_drops_mins = models.CharField(max_length=50)  # Stores Hrs/Drops/Mins as a string
     dose = models.CharField(max_length=50)

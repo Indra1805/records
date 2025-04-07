@@ -175,103 +175,118 @@ class ProgressNoteValidator(serializers.Serializer):
 
 # Treatment Chart
 
-class TreatmentChartValidator(serializers.Serializer):
-    patient = serializers.CharField(max_length=50)
+# class TreatmentChartValidator(serializers.Serializer):
+#     patient = serializers.CharField(max_length=50)
    
-    medicine_name = serializers.CharField(
-        required=True,
-        max_length=255,
-        error_messages={
-            "required": "Medicine name is a required field.",
-            "blank": "Medicine name cannot be empty.",
-            "max_length": "Medicine name cannot exceed 255 characters."
-        }
+#     medicine_name = serializers.CharField(
+#         required=True,
+#         max_length=255,
+#         error_messages={
+#             "required": "Medicine name is a required field.",
+#             "blank": "Medicine name cannot be empty.",
+#             "max_length": "Medicine name cannot exceed 255 characters."
+#         }
+#     )
+ 
+#     hrs_drops_mins = serializers.CharField(
+#         required=True,
+#         max_length=50,
+#         error_messages={
+#             "required": "Hrs/Drops/Mins is a required field.",
+#             "blank": "Hrs/Drops/Mins cannot be empty.",
+#             "max_length": "This field cannot exceed 50 characters."
+#         }
+#     )
+ 
+#     dose = serializers.CharField(
+#         required=True,
+#         max_length=50,
+#         error_messages={
+#             "required": "Dose is a required field.",
+#             "blank": "Dose cannot be empty.",
+#             "max_length": "Dose cannot exceed 50 characters."
+#         }
+#     )
+ 
+#     time = serializers.TimeField(
+#         required=True,
+#         error_messages={
+#             "required": "Time is a required field.",
+#             "invalid": "Invalid time format. Use HH:MM:SS."
+#         }
+#     )
+ 
+#     medicine_details = serializers.CharField(
+#         required=True,
+#         error_messages={
+#             "required": "Medicine details are required.",
+#             "blank": "Medicine details cannot be empty."
+#         }
+#     )
+#     created_at = serializers.DateTimeField(read_only=True)
+#     updated_at = serializers.DateTimeField(read_only=True)
+ 
+# class TreatmentChartUpdateValidator(serializers.Serializer):
+#     medicine_name = serializers.CharField(
+#         required=True,
+#         max_length=255,
+#         error_messages={
+#             "required": "Medicine name is a required field.",
+#             "blank": "Medicine name cannot be empty.",
+#             "max_length": "Medicine name cannot exceed 255 characters."
+#         }
+#     )
+ 
+#     hrs_drops_mins = serializers.CharField(
+#         required=True,
+#         max_length=50,
+#         error_messages={
+#             "required": "Hrs/Drops/Mins is a required field.",
+#             "blank": "Hrs/Drops/Mins cannot be empty.",
+#             "max_length": "This field cannot exceed 50 characters."
+#         }
+#     )
+ 
+#     dose = serializers.CharField(
+#         required=True,
+#         max_length=50,
+#         error_messages={
+#             "required": "Dose is a required field.",
+#             "blank": "Dose cannot be empty.",
+#             "max_length": "Dose cannot exceed 50 characters."
+#         }
+#     )
+ 
+#     time = serializers.TimeField(
+#         required=True,
+#         error_messages={
+#             "required": "Time is a required field.",
+#             "invalid": "Invalid time format. Use HH:MM:SS."
+#         }
+#     )
+ 
+#     medicine_details = serializers.CharField(
+#         required=True,
+#         error_messages={
+#             "required": "Medicine details are required.",
+#             "blank": "Medicine details cannot be empty."
+#         }
+#     )
+
+
+class TreatmentChartValidator(serializers.Serializer):
+    patient = serializers.CharField()
+    medicines = serializers.ListField(
+        child=serializers.DictField(), allow_empty=False
     )
  
-    hrs_drops_mins = serializers.CharField(
-        required=True,
-        max_length=50,
-        error_messages={
-            "required": "Hrs/Drops/Mins is a required field.",
-            "blank": "Hrs/Drops/Mins cannot be empty.",
-            "max_length": "This field cannot exceed 50 characters."
-        }
-    )
- 
-    dose = serializers.CharField(
-        required=True,
-        max_length=50,
-        error_messages={
-            "required": "Dose is a required field.",
-            "blank": "Dose cannot be empty.",
-            "max_length": "Dose cannot exceed 50 characters."
-        }
-    )
- 
-    time = serializers.TimeField(
-        required=True,
-        error_messages={
-            "required": "Time is a required field.",
-            "invalid": "Invalid time format. Use HH:MM:SS."
-        }
-    )
- 
-    medicine_details = serializers.CharField(
-        required=True,
-        error_messages={
-            "required": "Medicine details are required.",
-            "blank": "Medicine details cannot be empty."
-        }
-    )
-    created_at = serializers.DateTimeField(read_only=True)
-    updated_at = serializers.DateTimeField(read_only=True)
- 
-class TreatmentChartUpdateValidator(serializers.Serializer):
-    medicine_name = serializers.CharField(
-        required=True,
-        max_length=255,
-        error_messages={
-            "required": "Medicine name is a required field.",
-            "blank": "Medicine name cannot be empty.",
-            "max_length": "Medicine name cannot exceed 255 characters."
-        }
-    )
- 
-    hrs_drops_mins = serializers.CharField(
-        required=True,
-        max_length=50,
-        error_messages={
-            "required": "Hrs/Drops/Mins is a required field.",
-            "blank": "Hrs/Drops/Mins cannot be empty.",
-            "max_length": "This field cannot exceed 50 characters."
-        }
-    )
- 
-    dose = serializers.CharField(
-        required=True,
-        max_length=50,
-        error_messages={
-            "required": "Dose is a required field.",
-            "blank": "Dose cannot be empty.",
-            "max_length": "Dose cannot exceed 50 characters."
-        }
-    )
- 
-    time = serializers.TimeField(
-        required=True,
-        error_messages={
-            "required": "Time is a required field.",
-            "invalid": "Invalid time format. Use HH:MM:SS."
-        }
-    )
- 
-    medicine_details = serializers.CharField(
-        required=True,
-        error_messages={
-            "required": "Medicine details are required.",
-            "blank": "Medicine details cannot be empty."
-        }
-    )
+    def validate_medicines(self, medicines):
+        for medicine in medicines:
+            required_fields = ['medicine_name', 'hrs_drops_mins', 'dose', 'time', 'medicine_details']
+            for field in required_fields:
+                if field not in medicine or not medicine[field]:
+                    raise serializers.ValidationError(f"{field} is required.")
+        return medicines
 
 
 # Pain Assessment

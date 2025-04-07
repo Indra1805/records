@@ -14,7 +14,7 @@ from rest_framework.exceptions import ValidationError, NotFound
 from django.utils import timezone
 from rest_framework import status
 from patients.models import Patient
-from .models import (MedicalRecord,ProgressNote,PainAssessment,InitialAssessment,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4)
+from .models import (MedicalRecord,TreatmentChart,ProgressNote,PainAssessment,InitialAssessment,RiskFactor1,RiskFactor2,RiskFactor3,RiskFactor4)
 from .serializers import (VitalsSerializer,LabResultSerializer,ImagingSerializer,PrescriptionSerializer,ServiceProcedureSerializer,NursingNotesSerializer,ProgressNoteSerializer,TreatmentChartSerializer,PainAssessmentSerializer,
                           InitialAssessmentSerializer,CarePlanFeedbackSerializer,RiskFactor1Serializer,RiskFactor2Serializer,
                           RiskFactor3Serializer,RiskFactor4Serializer)
@@ -425,7 +425,7 @@ class CreateProgressNoteAPIView(APIView):
 
 
 
-class ProgressNoteDetailView(APIView):
+class UpdateProgressNoteView(APIView):
 
     def get(self, request, patient_id):
         context = {
@@ -508,164 +508,311 @@ class ProgressNoteDetailView(APIView):
 # Treatment Chart
 
 class TreatmentChartAPIView(APIView):
+ 
     def get(self, request):
-        return Response({"message": "Use POST to create a treatment chart"}, status=status.HTTP_200_OK)
-
+ 
+        return Response(
+ 
+            {"message": "Use POST to create a treatment chart"},
+ 
+            status=status.HTTP_200_OK
+ 
+        )
+ 
     def post(self, request):
+ 
+        context = {
+ 
+            "success": 1,
+ 
+            "message": "Data saved successfully",
+ 
+            "data": {}
+ 
+        }
+ 
+        try:
+ 
+            validator = TreatmentChartValidator(data=request.data)
+ 
+            if not validator.is_valid():
+ 
+                raise SerializerError(validator.errors)
+ 
+            req_params = validator.validated_data
+ 
+            # Debugging: Print received patient ID
+ 
+            print("Received Patient ID:", req_params['patient'])
+ 
+            # Check if patient exists
+ 
+            try:
+ 
+                patient = Patient.objects.get(patient_id=req_params['patient'])
+ 
+            except Patient.DoesNotExist:
+ 
+                return Response(
+ 
+                    {
+ 
+                        "success": 0,
+ 
+                        "message": f"No patient found with ID {req_params['patient']}. Please check and try again.",
+ 
+                        "data": {}
+ 
+                    },
+ 
+                    status=status.HTTP_400_BAD_REQUEST
+ 
+                )
+ 
+            # Ensure request contains multiple medicines
+ 
+            medicines_data = req_params.get("medicines", [])  # Expecting a list of medicines
+ 
+            if not medicines_data:
+ 
+                return Response(
+ 
+                    {
+ 
+                        "success": 0,
+ 
+                        "message": "Medicines list is required.",
+ 
+                        "data": {}
+ 
+                    },
+ 
+                    status=status.HTTP_400_BAD_REQUEST
+ 
+                )
+ 
+            # Creating multiple TreatmentChart entries
+ 
+            treatment_entries = [
+ 
+                TreatmentChart(
+ 
+                    patient=patient,
+ 
+                    medicine_name=medicine["medicine_name"],
+ 
+                    hrs_drops_mins=medicine["hrs_drops_mins"],
+ 
+                    dose=medicine["dose"],
+ 
+                    time=medicine["time"],
+ 
+                    medicine_details=medicine["medicine_details"],
+ 
+                )
+ 
+                for medicine in medicines_data
+ 
+            ]
+ 
+            TreatmentChart.objects.bulk_create(treatment_entries)
+ 
+            # Serialize created objects
+ 
+            serializer = TreatmentChartSerializer(treatment_entries, many=True, context={"request": request})
+ 
+            context['data'] = {"treatment_chart_details": serializer.data}
+ 
+        except SerializerError as e:
+ 
+            context['success'] = 0
+ 
+            context['message'] = str(e)
+ 
+        except Exception as e:
+ 
+            context['success'] = 0
+ 
+            context['message'] = str(e)
+ 
+        return Response(context, status=status.HTTP_201_CREATED if context["success"] else status.HTTP_400_BAD_REQUEST)
+ 
+ 
+ 
+ 
+ 
+class TreatmentChartListAPIView(APIView):
+ 
+    def get(self, request, patient_id):
+        if not patient_id:
+            return Response(
+                {"success": 0, "message": "patient_id is required in the URL", "data": {}},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+ 
+        try:
+            # Get the patient by the custom patient_id field
+            patient = Patient.objects.get(patient_id=patient_id)
+ 
+            # Get all treatment chart entries for the patient
+            treatment_charts = TreatmentChart.objects.filter(patient=patient)
+ 
+            if not treatment_charts.exists():
+                return Response(
+                    {
+                        "success": 0,
+                        "message": f"No treatment charts found for patient ID {patient_id}",
+                        "data": {}
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+ 
+            # Serialize and return
+            serializer = TreatmentChartSerializer(treatment_charts, many=True, context={"request": request})
+            return Response(
+                {
+                    "success": 1,
+                    "message": "Treatment chart data retrieved successfully",
+                    "data": {"treatment_chart_details": serializer.data}
+                },
+                status=status.HTTP_200_OK
+            )
+ 
+        except Patient.DoesNotExist:
+            return Response(
+                {
+                    "success": 0,
+                    "message": f"No patient found with ID {patient_id}",
+                    "data": {}
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+ 
+        except Exception as e:
+            return Response(
+                {"success": 0, "message": str(e), "data": {}},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+ 
+ 
+ 
+ 
+ 
+class TreatmentChartUpdateAPIView(APIView):
+ 
+    def get(self, request, patient_id):
+        if not patient_id:
+            return Response(
+                {"success": 0, "message": "patient_id is required in the URL", "data": {}},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+ 
+        try:
+            # Get the patient by the custom patient_id field
+            patient = Patient.objects.get(patient_id=patient_id)
+ 
+            # Get all treatment chart entries for the patient
+            treatment_charts = TreatmentChart.objects.filter(patient=patient)
+ 
+            if not treatment_charts.exists():
+                return Response(
+                    {
+                        "success": 0,
+                        "message": f"No treatment charts found for patient ID {patient_id}",
+                        "data": {}
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+ 
+            # Serialize and return
+            serializer = TreatmentChartSerializer(treatment_charts, many=True, context={"request": request})
+            return Response(
+                {
+                    "success": 1,
+                    "message": "Treatment chart data retrieved successfully",
+                    "data": {"treatment_chart_details": serializer.data}
+                },
+                status=status.HTTP_200_OK
+            )
+ 
+        except Patient.DoesNotExist:
+            return Response(
+                {
+                    "success": 0,
+                    "message": f"No patient found with ID {patient_id}",
+                    "data": {}
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+ 
+        except Exception as e:
+            return Response(
+                {"success": 0, "message": str(e), "data": {}},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+ 
+    def put(self, request, patient_id):
         context = {
             "success": 1,
-            "message": messages.DATA_SAVED,
+            "message": "Treatment chart updated successfully",
             "data": {}
         }
+ 
         try:
-            validator = validators.TreatmentChartValidator(data=request.data)
-            if not validator.is_valid():
-                raise SerializerError(validator.errors)
-
-            req_params = validator.validated_data
-
-            # Debugging: Print received patient ID
-            print("Received Patient ID:", req_params['patient'])
-
             # Check if patient exists
             try:
-                patient = Patient.objects.get(patient_id=req_params['patient'])
+                patient = Patient.objects.get(patient_id=patient_id)
             except Patient.DoesNotExist:
                 return Response(
                     {
                         "success": 0,
-                        "message": f"No patient found with ID {req_params['patient']}. Please check and try again.",
+                        "message": f"No patient found with ID {patient_id}",
+                        "data": {}
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+ 
+            # Get medicines data from request
+            medicines_data = request.data.get("medicines", [])
+ 
+            if not medicines_data:
+                return Response(
+                    {
+                        "success": 0,
+                        "message": "Medicines list is required for update.",
                         "data": {}
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
-            # Ensure only one TreatmentChart entry per patient
-            treatment_chart, created = models.TreatmentChart.objects.get_or_create(
-                patient=patient,
-                defaults={
-                    'medicine_name': req_params['medicine_name'],
-                    'hrs_drops_mins': req_params['hrs_drops_mins'],
-                    'dose': req_params['dose'],
-                    'time': req_params['time'],
-                    'medicine_details': req_params['medicine_details'],
-                }
-            )
-
-            if not created:
-                treatment_chart.medicine_name = req_params['medicine_name']
-                treatment_chart.hrs_drops_mins = req_params['hrs_drops_mins']
-                treatment_chart.dose = req_params['dose']
-                treatment_chart.time = req_params['time']
-                treatment_chart.medicine_details = req_params['medicine_details']
-                treatment_chart.save()
-
-            serializer = TreatmentChartSerializer(treatment_chart, context={"request": request})
-            context['data'] = {"treatment_chart_details": serializer.data}
-
-        except SerializerError as e:
-            context['success'] = 0
-            context['message'] = str(e)
-        except Exception as e:
-            context['success'] = 0
-            context['message'] = str(e)
-
-        return Response(context, status=status.HTTP_201_CREATED if context["success"] else status.HTTP_400_BAD_REQUEST)
-
-class TreatmentChartListAPIView(APIView):
-     def get(self, request, patient_id):
-        treatment_charts = models.TreatmentChart.objects.filter(patient__patient_id=patient_id)
-
-        if not treatment_charts.exists():
-            return Response({
-                "success": 0,
-                "message": f"No treatment charts found for patient ID {patient_id}.",
-                "data": []
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = TreatmentChartSerializer(treatment_charts, many=True, context={"request": request})
-
-        return Response({
-            "success": 1,
-            "message": "Treatment charts retrieved successfully.",
-            "data": serializer.data
-        }, status=status.HTTP_200_OK)
-
-class TreatmentChartUpdateAPIView(APIView):
-    def get(self, request, patient_id):
-        treatment_charts = models.TreatmentChart.objects.filter(patient__patient_id=patient_id)
-
-        if not treatment_charts.exists():
-            return Response({
-                "success": 0,
-                "message": f"No treatment charts found for patient ID {patient_id}.",
-                "data": []
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = TreatmentChartSerializer(treatment_charts, many=True, context={"request": request})
-
-        return Response({
-            "success": 1,
-            "message": "Treatment charts retrieved successfully.",
-            "data": serializer.data
-        }, status=status.HTTP_200_OK)
-    
-    def put(self, request, patient_id):
-        context = {
-            "success": 1,
-            "message": messages.DATA_UPDATED,
-            "data": {}
-        }
-        
-        try:
-            # Fetch patient using patient_id
-            try:
-                patient = models.Patient.objects.get(patient_id=patient_id)
-            except models.Patient.DoesNotExist:
-                return Response({
-                    "success": 0,
-                    "message": f"No patient found with ID {patient_id}.",
-                    "data": {}
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Fetch the latest TreatmentChart entry for this patient
-            treatment_chart = models.TreatmentChart.objects.filter(patient=patient).last()
-            if not treatment_chart:
-                return Response({
-                    "success": 0,
-                    "message": f"No treatment chart found for patient ID {patient_id}.",
-                    "data": {}
-                }, status=status.HTTP_404_NOT_FOUND)
-
-            # Validate request data using update validator
-            validator = validators.TreatmentChartUpdateValidator(data=request.data)
-            if not validator.is_valid():
-                raise SerializerError(validator.errors)
-
-            req_params = validator.validated_data
-
-            # Update TreatmentChart object with validated data
-            treatment_chart.medicine_name = req_params["medicine_name"]
-            treatment_chart.hrs_drops_mins = req_params["hrs_drops_mins"]
-            treatment_chart.dose = req_params["dose"]
-            treatment_chart.time = req_params["time"]
-            treatment_chart.medicine_details = req_params["medicine_details"]
-            treatment_chart.save()
-
-            # Serialize the updated record
-            serializer = TreatmentChartSerializer(treatment_chart, context={"request": request})
-            context["data"] = serializer.data
-
-        except SerializerError as e:
-            context["success"] = 0
-            context["message"] = str(e)
-            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+ 
+            # Optional: delete existing treatment charts before replacing
+            TreatmentChart.objects.filter(patient=patient).delete()
+ 
+            # Create new treatment entries
+            treatment_entries = [
+                TreatmentChart(
+                    patient=patient,
+                    medicine_name=medicine["medicine_name"],
+                    hrs_drops_mins=medicine["hrs_drops_mins"],
+                    dose=medicine["dose"],
+                    time=medicine["time"],
+                    medicine_details=medicine["medicine_details"],
+                )
+                for medicine in medicines_data
+            ]
+ 
+            TreatmentChart.objects.bulk_create(treatment_entries)
+ 
+            # Serialize and return new data
+            serializer = TreatmentChartSerializer(treatment_entries, many=True, context={"request": request})
+            context["data"] = {"treatment_chart_details": serializer.data}
+ 
         except Exception as e:
             context["success"] = 0
             context["message"] = str(e)
-            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+ 
+        return Response(context, status=status.HTTP_200_OK if context["success"] else status.HTTP_400_BAD_REQUEST)
 
-        return Response(context, status=status.HTTP_200_OK)
 
 
 # Pain Assessment
